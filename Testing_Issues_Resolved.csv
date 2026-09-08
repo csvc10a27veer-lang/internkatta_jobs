@@ -1,0 +1,42 @@
+Issue ID,Page/Section,Issue Description,Solution
+1,"What We Offer → Learn More Links","When clicking Learn More, the page opens at the bottom instead of the top","Added automatic scroll to top when page loads"
+2,Contact Page,"Contact page opens showing the footer first instead of starting at the top","Added automatic scroll to top when page loads"
+3,Contact Page,"Phone number and office address were placeholder/dummy information","Updated to show 'Updated details will be added shortly' message"
+4,"What We Offer → Learn More Links","Same as Issue 1 - page opens at bottom","Same solution as Issue 1 - automatic scroll to top"
+5,Contact Page,"Same as Issue 2 - page opens at bottom","Same solution as Issue 2 - automatic scroll to top"
+6,Contact Page,"Same as Issue 3 - dummy contact information","Same solution as Issue 3 - updated placeholder message"
+7,"Internships/Training Page","A diagonal line appears above the footer section","Fixed CSS styling to remove unwanted visual elements"
+8,"CTA Buttons (Contact Admissions & Download Brochure)","Buttons opened blank pages with no content","Created proper pages: Contact Admissions links to contact page, Download Brochure links to new brochure page"
+9,"Home → View All Courses","Course page opens from the bottom instead of the top","Added automatic scroll to top when page loads"
+10,"Home → View All Internships","Internship page opens from the middle instead of the top","Added automatic scroll to top when page loads"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,134 @@
+{
+  "containerWidth": 520,
+  "containerHeight": 620,
+  "description": "Exact tile map with absolute positioning matching reference image",
+  "tiles": [
+    {
+      "id": "a",
+      "shape": "circle",
+      "size": 140,
+      "color": "#FF3333",
+      "x": 0,
+      "y": 0,
+      "contentType": "decorative"
+    },
+    {
+      "id": "b",
+      "shape": "rounded-square",
+      "size": 140,
+      "color": "#FFD700",
+      "x": 160,
+      "y": 0,
+      "contentType": "decorative"
+    },
+    {
+      "id": "c",
+      "shape": "tall-pill",
+      "width": 160,
+      "height": 280,
+      "color": "#2FA8FF",
+      "x": 320,
+      "y": 0,
+      "contentType": "decorative"
+    },
+    {
+      "id": "d",
+      "shape": "rounded-square",
+      "size": 140,
+      "color": "#37B77F",
+      "x": 0,
+      "y": 160,
+      "contentType": "stat",
+      "stat": "10000+",
+      "label": "Students Trained"
+    },
+    {
+      "id": "e",
+      "shape": "circle",
+      "size": 140,
+      "color": "#2FA8FF",
+      "x": 160,
+      "y": 160,
+      "contentType": "decorative"
+    },
+    {
+      "id": "f",
+      "shape": "half-round-right",
+      "size": 140,
+      "color": "#4036E9",
+      "x": 320,
+      "y": 160,
+      "contentType": "decorative"
+    },
+    {
+      "id": "g",
+      "shape": "rounded-square",
+      "size": 140,
+      "color": "#FFD700",
+      "x": 0,
+      "y": 320,
+      "contentType": "decorative"
+    },
+    {
+      "id": "j",
+      "shape": "half-round-left",
+      "size": 140,
+      "color": "#FF4FB6",
+      "x": 160,
+      "y": 320,
+      "contentType": "decorative"
+    },
+    {
+      "id": "h",
+      "shape": "square",
+      "size": 140,
+      "color": "#E8DED2",
+      "x": 320,
+      "y": 320,
+      "contentType": "decorative"
+    },
+    {
+      "id": "k",
+      "shape": "rounded-rect",
+      "width": 140,
+      "height": 140,
+      "color": "#354C63",
+      "x": 480,
+      "y": 320,
+      "contentType": "stat",
+      "stat": "500+",
+      "label": "Industry Partners"
+    },
+    {
+      "id": "l",
+      "shape": "half-pill-left",
+      "width": 280,
+      "height": 140,
+      "color": "#2FA8FF",
+      "x": 0,
+      "y": 480,
+      "contentType": "decorative"
+    },
+    {
+      "id": "n",
+      "shape": "circle",
+      "size": 140,
+      "color": "#FF3333",
+      "x": 280,
+      "y": 480,
+      "contentType": "stat",
+      "stat": "60+",
+      "label": "Expert Instructors"
+    },
+    {
+      "id": "m",
+      "shape": "big-pill",
+      "width": 280,
+      "height": 280,
+      "color": "#4036E9",
+      "x": 420,
+      "y": 440,
+      "contentType": "decorative"
+    }
+  ]
+}

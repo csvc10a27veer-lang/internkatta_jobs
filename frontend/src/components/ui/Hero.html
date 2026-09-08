@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InternKatta Hero - HTML Fallback</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* Theme Tokens */
+    :root {
+      --color-brand-blue: #2563EB;
+      --color-brand-blue-700: #1E4ED8;
+      --color-brand-purple: #6366F1;
+      --color-accent-orange: #FF8C42;
+      --color-surface: #F8FAFC;
+      --color-muted: #6B7280;
+      --color-text: #0F172A;
+      --color-border: #E6E9EE;
+      --font-headline: 'Poppins', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --container-max-width: 1100px;
+      --hero-padding-desktop: 100px;
+      --hero-padding-tablet: 48px;
+      --hero-padding-mobile: 28px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--color-text);
+      background: white;
+    }
+
+    .hero-section {
+      background: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-container {
+      max-width: var(--container-max-width);
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      padding: var(--hero-padding-mobile) 0;
+    }
+
+    @media (min-width: 640px) {
+      .hero-content {
+        padding: var(--hero-padding-tablet) 0;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .hero-content {
+        flex-direction: row;
+        align-items: center;
+        gap: 48px;
+        padding: var(--hero-padding-desktop) 0;
+      }
+    }
+
+    .hero-left {
+      width: 100%;
+    }
+
+    @media (min-width: 1024px) {
+      .hero-left {
+        width: 40%;
+        max-width: 480px;
+      }
+    }
+
+    .hero-label {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-brand-blue-700);
+      margin-bottom: 16px;
+      font-family: var(--font-body);
+    }
+
+    .hero-title {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--color-text);
+      margin-bottom: 24px;
+      font-family: var(--font-headline);
+    }
+
+    @media (min-width: 640px) {
+      .hero-title {
+        font-size: 32px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .hero-title {
+        font-size: 40px;
+      }
+    }
+
+    .hero-subtitle {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--color-muted);
+      margin-bottom: 32px;
+      font-family: var(--font-body);
+    }
+
+    @media (min-width: 640px) {
+      .hero-subtitle {
+        font-size: 15px;
+      }
+    }
+
+    .hero-cta {
+      display: inline-block;
+      padding: 12px 32px;
+      height: 48px;
+      background: var(--color-brand-blue);
+      color: white;
+      border-radius: 50px;
+      text-decoration: none;
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: 16px;
+      box-shadow: 0 12px 30px rgba(2, 6, 23, 0.06);
+      transition: background 0.2s, transform 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .hero-cta:hover {
+      background: var(--color-brand-blue-700);
+      transform: translateY(-2px);
+    }
+
+    .hero-cta:focus {
+      outline: 3px solid var(--color-brand-blue);
+      outline-offset: 2px;
+    }
+
+    .hero-right {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (min-width: 1024px) {
+      .hero-right {
+        width: 60%;
+      }
+    }
+
+    .mosaic-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 600px;
+      aspect-ratio: 1 / 1;
+      min-height: 400px;
+    }
+
+    .mosaic-tile {
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tile-rounded-square {
+      background: var(--color-brand-blue);
+    }
+
+    .tile-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      padding: 16px;
+    }
+
+    .tile-stat-value {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 32px;
+      margin-bottom: 4px;
+    }
+
+    .tile-stat-label {
+      font-family: var(--font-body);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .tile-circle {
+      background: var(--color-accent-orange);
+      border-radius: 50%;
+    }
+
+    .tile-pill {
+      background: var(--color-brand-blue);
+      border-radius: 999px;
+    }
+
+    .tile-half-circle-top {
+      background: var(--color-brand-purple);
+      border-radius: 80px 80px 0 0;
+    }
+
+    .tile-half-circle-bottom {
+      background: var(--color-brand-blue);
+      border-radius: 0 0 80px 80px;
+    }
+
+    .tile-rounded-rectangle {
+      background: var(--color-accent-orange);
+    }
+
+    /* Grid positioning */
+    .tile-1 { grid-column: 1; grid-row: 1; }
+    .tile-2 { grid-column: 2; grid-row: 1; }
+    .tile-3 { grid-column: 3; grid-row: 1; }
+    .tile-4 { grid-column: 1 / span 2; grid-row: 2; }
+    .tile-5 { grid-column: 3; grid-row: 2; }
+    .tile-6 { grid-column: 1; grid-row: 3 / span 2; }
+    .tile-7 { grid-column: 2; grid-row: 3; }
+    .tile-8 { grid-column: 3; grid-row: 3; }
+    .tile-9 { grid-column: 2 / span 2; grid-row: 4; }
+    .tile-10 { grid-column: 3; grid-row: 4; }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <!-- Left Column -->
+        <div class="hero-left">
+          <div class="hero-label">LEARN WITH INTERNKATTA</div>
+          <h1 class="hero-title">Unlock Your Potential with InternKatta</h1>
+          <p class="hero-subtitle">
+            Your journey to a successful tech career starts here. Explore industry-relevant courses, hands-on internships, and specialized training programs.
+          </p>
+          <a href="/courses" class="hero-cta">EXPLORE COURSES</a>
+        </div>
+
+        <!-- Right Column - Mosaic -->
+        <div class="hero-right">
+          <div class="mosaic-container">
+            <div class="mosaic-tile tile-rounded-square tile-1"></div>
+            <div class="mosaic-tile tile-stat tile-2" style="background: var(--color-brand-purple);">
+              <div class="tile-stat-value">10000+</div>
+              <div class="tile-stat-label">Students Trained</div>
+            </div>
+            <div class="mosaic-tile tile-circle tile-3"></div>
+            <div class="mosaic-tile tile-pill tile-4"></div>
+            <div class="mosaic-tile tile-half-circle-top tile-5"></div>
+            <div class="mosaic-tile tile-rounded-rectangle tile-6"></div>
+            <div class="mosaic-tile tile-stat tile-7" style="background: var(--color-brand-blue-700);">
+              <div class="tile-stat-value">500+</div>
+              <div class="tile-stat-label">Industry Partners</div>
+            </div>
+            <div class="mosaic-tile tile-rounded-square tile-8" style="background: var(--color-brand-purple);"></div>
+            <div class="mosaic-tile tile-stat tile-9" style="background: var(--color-accent-orange);">
+              <div class="tile-stat-value">60+</div>
+              <div class="tile-stat-label">Expert Instructors</div>
+            </div>
+            <div class="mosaic-tile tile-half-circle-bottom tile-10"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
+

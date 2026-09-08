@@ -1,0 +1,75 @@
+/* InternKatta Hero Theme Tokens - CSS Variables */
+
+:root {
+  /* Brand Colors */
+  --color-brand-blue: #2563EB;
+  --color-brand-blue-700: #1E4ED8;
+  --color-brand-purple: #6366F1;
+  --color-accent-orange: #FF8C42;
+  
+  /* Surface & Text Colors */
+  --color-surface: #F8FAFC;
+  --color-muted: #6B7280;
+  --color-text: #0F172A;
+  --color-border: #E6E9EE;
+  
+  /* Typography */
+  --font-headline: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  
+  /* Font Sizes */
+  --font-size-h1-desktop: 40px;
+  --font-size-h1-tablet: 32px;
+  --font-size-h1-mobile: 28px;
+  --font-size-body-desktop: 15px;
+  --font-size-body-tablet: 15px;
+  --font-size-body-mobile: 14px;
+  --font-size-button: 16px;
+  --font-size-label: 12px;
+  
+  /* Font Weights */
+  --font-weight-headline: 700;
+  --font-weight-button: 600;
+  --font-weight-body: 400;
+  
+  /* Spacing */
+  --container-max-width: 1100px;
+  --hero-padding-desktop: 100px;
+  --hero-padding-tablet: 48px;
+  --hero-padding-mobile: 28px;
+  --mosaic-gap: 12px;
+  
+  /* Tile Sizes - Used for explicit width/height to prevent overflow */
+  --tile-size: 140px; /* Desktop default */
+  --tile-size-tablet: 120px;
+  --tile-size-mobile: 100px;
+  
+  /* Legacy block sizes (kept for compatibility) */
+  --block-size-desktop: 140px;
+  --block-size-tablet: 120px;
+  --block-size-mobile: 100px;
+  
+  /* Border Radius */
+  --radius-block: 12px;
+  --radius-button: 50px;
+  --radius-pill: 999px;
+  
+  /* Shadows */
+  --shadow-cta: 0 12px 30px rgba(2, 6, 23, 0.06);
+  
+  /* Animation */
+  --animation-duration-fast: 6s;
+  --animation-duration-medium: 10s;
+  --animation-duration-slow: 14s;
+  --animation-easing: cubic-bezier(0.22, 0.9, 0.36, 1);
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animation-duration-fast: 0.01s;
+    --animation-duration-medium: 0.01s;
+    --animation-duration-slow: 0.01s;
+  }
+}
+

@@ -1,0 +1,1877 @@
+PhonePe’s Standard Checkout API provides a secure and easy way to integrate a comprehensive payment solution into your website. It allows you to accept all major payment methods, including UPI, Credit/Debit Cards, and Net Banking. This integration ensures safe transactions by maintaining PCI DSS compliance by default, all while offering your customers a smooth, reliable, and non-redirective checkout experience.
+
+To integrate PhonePe Payment Gateway into your website using the API integration method, here’s an overview of the user journey and checkout pages across different platforms.
+
+Checkout Page
+The checkout pages are optimized for both desktop and mobile views. Users can complete payments using UPI ID, NetBanking, or Cards on either view, while QR-based payments are available only on the desktop view. Below is a preview of the checkout experience on both desktop and mobile.
+
+Desktop View
+
+
+
+Mobile View
+
+
+
+User Journey
+The following user journey illustrates the complete payment lifecycle to help you understand the integration flow clearly.
+
+
+
+Prerequisites
+Before you start the integration process, ensure you have:
+
+Access to PhonePe PG’s UAT (User Acceptance Testing) and Production environments.
+API credentials, including the Client ID, Client Version and Client Secret.
+A basic understanding of HTTP methods (GET, POST) and JSON.
+A testing environment to simulate payment flows.
+Environments
+Use the environment URLs below to integrate and test your API calls. The Sandbox environment is intended for testing and validation, while the Production environment should be used once your integration is live. Make sure to switch the base URL based on the environment you are working in.
+
+Environment	API
+Sandbox	https://api-preprod.phonepe.com/apis/pg-sandbox/<Endpoint>
+Production	Authorization API: https://api.phonepe.com/apis/identity-manager/<Endpoint>
+Other APIs: https://api.phonepe.com/apis/pg/<Endpoint>
+📘 Test Before Production!
+
+To ensure a smooth integration, please integrate with the Test environment first and then move to production.
+
+API Endpoints
+Endpoint Details:
+API	Method	Endpoint
+Authorization	POST	/v1/oauth/token
+Create Payment	POST	/checkout/v2/pay
+Order Status API	GET	/checkout/v2/order/{merchantOrderId}/status
+Refund	POST	/payments/v2/refund
+Refund Status API	GET	/payments/v2/refund/{merchantRefundId}/status
+You can fork the PhonePe Postman Public Workspace to explore and try out the Standard Checkout APIs.
+
+Run in Postman ->
+What’s Next?
+Now that you’re familiar with the environment setup and APIs, you can start the integration process. The next section will walk you through the Integration Steps to help you build the checkout experience seamlessly into your website.
+
+
+
+Website Integration
+
+To process a payment using PhonePe’s Standard Checkout, the integration follows a structured sequence of steps that ensures security, reliability, and a smooth customer experience.
+
+
+
+1. Generate Authorization Token
+Authentication is the first step in PhonePe Payment Gateway’s standard checkout API integration. It involves generating an authorization token to make further API calls. 
+
+Creating an authorization token to make API calls means generating a unique key or password that proves your system has permission to interact with PhonePe Payment Gateway. This token identifies and authenticates your website when it requests services like processing payments, checking status, etc.
+
+For complete details, refer to the Generate Authorization API Reference.
+
+2. Create Payment Request
+This includes providing key information such as the transaction amount, a unique order ID, and the redirection URL where the customer will be taken after the payment is completed (whether it is a success or failure). 
+
+Important:
+You can pass the expireAfter parameter in the request payload to customise the expiry of the PhonePe Standard Checkout Page
+You can pass the user-defined fields(UDFs) in the metaInfo block to receive the same details in the Status or Webhook response
+You can pass the selected instrument details in the paymentModeConfig block to display/hide the selected instruments as per your needs
+For complete details, refer to the Create Payment API Reference.
+
+3. Invoke iframe PayPage
+In this step, you’ll integrate and invoke the PayPage on the checkout page of your website. The PayPage acts as the interface where customers complete their payment process.
+
+For complete details, refer to the PayPage.
+
+4. Verify Payment Response
+Once a payment is initiated, it’s important to confirm whether it was successful, failed, or still pending. This helps your system take the right next steps, like confirming an order or retrying a payment. There are two ways to verify the payment response:
+
+Webhook (Server-to-Server Callback) – Recommended
+This is an automated notification sent by PhonePe Payment Gateway directly to your server when the status of the payment changes (e.g., success or failure). It ensures real-time updates. 
+Webhook Event Types
+checkout.order.completed 
+checkout.order.failed 
+pg.refund.completed 
+pg.refund.failed
+Check Status API :
+If you don’t receive the webhook callback, you can use the APIs to manually check the payment status using Order Status.
+Important:
+Use the “payload.state” Parameter: For payment status, rely only on the root-level “payload.state” field in the response
+Avoid Strict Deserialization: Don’t use overly strict rules for processing the response
+Use the “event” Parameter: Use the “event” parameter instead to identify the event type
+Time Format: The expireAt and timestamp fields will be in epoch time
+What’s Next?
+You’ve now understood the key steps involved in integrating PhonePe Payment Gateway into your website. It’s time to begin the actual integration process by generating an authorization token.
+
+Head over to the next section to learn how to securely authenticate your API requests using our Authorization API.
+
+
+
+
+This API generates an Authorization Token required to authenticate all standard checkout API requests.
+
+The token must be obtained before initiating any checkout-related operations such as creating a payment request, checking payment status, or processing refunds. It should be included in the Authorization header for all subsequent API calls.
+
+Environment
+Environment	HTTP Method	API
+Sandbox	POST	https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token
+Production	POST	https://api.phonepe.com/apis/identity-manager/v1/oauth/token
+Request
+Request Header
+Header Name	Header Value
+Content-Type	application/x-www-form-urlencoded
+Request Parameters
+Parameter Name	Parameter Value
+client_id	Client ID shared by PhonePe PG
+client_version	Client Version shared by PhonePe PG
+client_secret	Client secret shared by PhonePe PG
+grant_type	Set the value to “client_credentials“
+Sample Request
+
+curl --location 'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'client_id=CLIENT_ID' \
+--data-urlencode 'client_version=CLIENT_VERSION' \
+--data-urlencode 'client_secret=CLIENT_SECRET' \
+--data-urlencode 'grant_type=client_credentials'
+Response
+Sample Response
+
+{
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3MjA2MzUzMjE5OTYsIm1lcmNoYW50SWQiOiJWUlVBVCJ9.4YjYHI6Gy6gzOisD_628wfbaI46dMSc5T_0gZ2-SAJo",
+    "encrypted_access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3MjA2MzUzMjE5OTYsIm1lcmNoYW50SWQiOiJWUlVBVCJ9.4YjYHI6Gy6gzOisD_628wfbaI46dMSc5T_0gZ2-SAJo",
+    "expires_in": null,
+    "issued_at": 1706073005,
+    "expires_at": 1706697605,
+    "session_expires_at": 1706697605,
+    "token_type": "O-Bearer"
+}
+Response Parameters
+Parameter Name	Data Type	Description
+access_token	String	The token generated by PhonePe. This token is valid for a specific time, which can be determined using the expires_at field. Once expired, the token must be refreshed using the same API.
+issued_at	DateTime	The timestamp in epoch (in seconds) when the token was generated
+expires_at	DateTime	Token expiry timestamp in epoch
+token_type	String	The type of token, which will be O-Bearer.
+ℹ️ Access Token Guidelines!
+
+You should depend on the following key response parameters:
+access_token: This is the token that must be included in API calls with PhonePe for authentication.
+expires_at: This indicates the token’s validity (in seconds). You must ensure that the token is refreshed before it expires. If it expires, you will have to send the request again.
+The auth_token is required for all subsequent API calls. Use the above access token to initiate the payment process.
+Run a Sample Token Request!
+📘 Accessing Your Credentials
+
+You can view your Client ID and Client Secret from the PhonePe Business Dashboard. Navigate to Developer Settings to find your API keys and use them to try out the sample code.
+
+body params
+Client Id
+string
+required
+Enter your client Id
+Client Secret
+string
+required
+Enter your client Secret
+
+
+
+
+Create Payment
+This API is used to initiate a Payment Gateway Checkout session by providing transaction details such as the amount, order ID, and redirect URLs.
+
+Once the request is successfully created, a checkout session is generated where the customer is redirected to complete the payment.
+
+Environment
+Environment	HTTP Method	API
+Sandbox	POST	https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay
+Production	POST	https://api.phonepe.com/apis/pg/checkout/v2/pay
+Request
+Request Headers
+Header Name	Header Value
+Content-Type	application/json
+Authorization	O-Bearer <merchant-auth-token>
+Request Parameters
+Parameter Name	Data Type	Description	Mandatory (Yes/No)	Constraints
+merchantOrderId	String	Unique merchant order ID generated by you	Yes	Max Length = 63 characters
+No Special characters are allowed except underscore “_” and hyphen “-“
+amount	Long	The total amount for the order, in paisa (e.g., ₹10 = 1000 paisa)	Yes	Minimum value = 100
+expireAfter	Long	The time (in seconds) after which the order will expire. If not provided, the default value will be used	No	
+Minimum value = 300, maximum value = 3600 (in seconds)
+metaInfo	Object	Merchant defined meta info to store additional information.
+same data will be returned in status and callback response.	No	For udf1 to udf10, there is no constraint.
+For udf11 to udf15, alphanumeric values with _-+@. are allowed.
+paymentFlow	Object	Additional details required by this flow	Yes	
+The metaInfo object contains additional parameters, which are explained in the table below.
+
+Request Parameters of metoInfo Object:
+Parameter Name	Data Type	Description	Mandatory (Yes/No)	Constraints
+metaInfo.udf1-15	String	Optional details you can add for more information	No	• Maximum length for Udf1-10 = 256 characters
+• Maximum length for Udf11-15 = 50 characters
+⚠️ Do Not Rename metainfo Parameters!
+
+It is mandatory to keep the parameter names udf1, udf2, etc., exactly as they are in the metainfo block. Renaming these key values will result in a production error.
+
+The paymentFlow object contains additional parameters, which are explained in the table below.
+
+Request Parameters of paymentFlow Object:
+Parameter Name	Data Type	Description	Mandatory (Yes/No)	Constraints
+paymentFlow.type	String	Type of payment flow	Yes	
+Valued allowed = [PG_CHECKOUT]
+paymentFlow.message	String	Payment message used for collect requests	No	
+paymentFlow.merchantUrls	Object	The object for storing different merchant URLs	Yes	
+paymentFlow.merchantUrls.redirectUrl	String	URL where the user will be redirected after a successful/failed payment	Yes	
+paymentFlow.paymentModeConfig	Object	The object for specifying which payment methods are shown to customers during checkout	No	
+Important:
+Include the paymentModeConfig block only if you want to control the payment instruments displayed at checkout
+If this block is not passed, PhonePe will show the default enabled instruments
+Either enabledPaymentModes or disabledPaymentModes must be provided—not both. If both are included, the API will return an error.
+Managing Payment Modes
+enabledPaymentModes: Displays only the specified payment instruments. Any other instruments enabled by PhonePe will not be shown.
+disabledPaymentModes: Hides only the specified payment instruments. All other instruments enabled by PhonePe will still be displayed.
+Special Case: Card Payments
+When configuring card payments, ensure cardTypes is included along with type.
+
+If enabledPaymentModes.type = "CARD" but cardTypes is not provided, the checkout will display cards based on PhonePe’s default settings (Credit and/or Debit Cards)
+If enabledPaymentModes.type = "CARD" and cardTypes = ["DEBIT_CARD"], only Debit Cards will be available
+For disabling card options:
+If disabledPaymentModes.type = "CARD" but cardTypes is not provided, cards will not be disabled and will follow PhonePe’s default settings
+If disabledPaymentModes.type = "CARD" and cardTypes = ["DEBIT_CARD"], only Debit Cards will be disabled
+If disabledPaymentModes.type = "CARD" and cardTypes = ["DEBIT_CARD", "CREDIT_CARD"], both Debit and Credit Cards will be disabled.
+Sample Request
+
+{
+    "merchantOrderId": "TX123456",
+    "amount": 1000,
+    "expireAfter": 1200,
+    "metaInfo": {
+        "udf1": "additional-information-1",
+        "udf2": "additional-information-2",
+        "udf3": "additional-information-3",
+        "udf4": "additional-information-4",
+        "udf5": "additional-information-5",
+        "udf6": "additional-information-6",
+        "udf7": "additional-information-7",
+        "udf8": "additional-information-8",
+        "udf9": "additional-information-9",
+        "udf10": "additional-information-10",
+        "udf11": "additional-information-11",
+        "udf12": "additional-information-12",
+        "udf13": "additional-information-13",
+        "udf14": "additional-information-14",
+        "udf15": "additional-information-15"
+    },
+    "paymentFlow": {
+        "type": "PG_CHECKOUT",
+        "message": "Payment message used for collect requests",
+        "merchantUrls": {
+            "redirectUrl": ""
+        }
+    } 
+}
+Sample Request in curl
+
+curl --location 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: O-Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3MTIyNTM2MjU2NDQsIm1lcmNoYW50SWQiOiJWMlNVQlVBVCJ9.7aVzYI_f_77-bBicEcRNuYx093b2wCsgl_WFNkKqAPY' \
+--data '{
+  "merchantOrderId": "TX123rrty34432456",
+  "amount": 1000,
+  "paymentFlow": {
+    "type": "PG_CHECKOUT",
+    "message": "Payment message used for collect requests",
+    "merchantUrls": {
+      "redirectUrl": "https://www.xyz.com/PGIntegration/"
+    }
+  }
+}'
+Sample Request with Selected Instrument
+
+{
+    "merchantOrderId": "TX123456",
+    "amount": 1000,
+    "expireAfter": 1200,
+    "metaInfo": {
+        "udf1": "<additional-information-1>",
+        "udf2": "<additional-information-2>",
+        "udf3": "<additional-information-3>",
+        "udf4": "<additional-information-4>",
+        "udf5": "<additional-information-5>",
+        "udf6": "<additional-information-6>",
+        "udf7": "<additional-information-7>",
+        "udf8": "<additional-information-8>",
+        "udf9": "<additional-information-9>",
+        "udf10": "<additional-information-10>",
+        "udf11": "<additional-information-11>",
+        "udf12": "<additional-information-12>",
+        "udf13": "<additional-information-13>",
+        "udf14": "<additional-information-14>",
+        "udf15": "<additional-information-15>"    
+    },
+    "paymentFlow": {
+        "type": "PG_CHECKOUT",
+        "message": "Payment message used for collect requests",
+        "merchantUrls": {
+            "redirectUrl": ""
+        },
+        "paymentModeConfig": {
+            "enabledPaymentModes": [
+                {
+                    "type": "UPI_INTENT"
+                },
+                {
+                    "type": "UPI_COLLECT"
+                },
+                {
+                    "type": "UPI_QR"
+                },
+                {
+                    "type": "NET_BANKING"
+                },
+                {
+                    "type": "CARD",
+                    "cardTypes": [
+                        "DEBIT_CARD",
+                        "CREDIT_CARD"
+                    ]
+                }
+            ],
+            "disabledPaymentModes": [
+                {
+                    "type": "UPI_INTENT"
+                },
+                {
+                    "type": "UPI_COLLECT"
+                },
+                {
+                    "type": "UPI_QR"
+                },
+                {
+                    "type": "NET_BANKING"
+                },
+                {
+                    "type": "CARD",
+                    "cardTypes": [
+                        "DEBIT_CARD",
+                        "CREDIT_CARD"
+                    ]
+                }
+            ]
+        }
+    }
+}
+Response
+Case 1: Order created successfully
+
+{
+    "orderId": "OMO123456789",
+    "state": "PENDING",
+    "expireAt": 1703756259307,    
+    "redirectUrl": "https://mercury-uat.phonepe.com/transact/uat_v2?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3MjgyNTk1MzE0NzgsIm1lcmNoYW50SWQiOiJWUlVBVCIsIm1lcmNoYW50T3JkZXJJZCI6Ik1PLTlkMC1hNmMyYmY1ZWM4MmUifQ.Trj5fub__kJpQhzOlJttXl2UPruHE7fsbH5QWj-iy6E"
+}
+Case 2: Order with same merchant order id is already present and not in CREATED state
+
+{
+    "code": "BAD_REQUEST",
+    "message": "Please check the inputs you have provided."
+}
+Case 3: Internal Server Error
+
+{
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "There is an error trying to process your transaction at the moment. Please try again in a while."
+}
+Response Parameters
+Field Name	Data Type	Description
+orderId	String	Payment Gateway generated internal order ID.
+state	String	State of the order created, expected value is PENDING.
+expiryAt	Long	Order expiry date in epoch.
+redirectUrl	String	URL where you are supposed to redirect the user to complete payment.
+Try a Sample Create Payment Request!
+headers
+Token
+string
+required
+Access Token you recieved
+O-Bearer 
+body params
+merchantOrderId
+string
+required
+Enter your merchantOrderId
+node
+node
+shell
+javascript
+python
+axios
+axios
+api
+node-fetch
+http
+request
+12345678910111213141516171819
+const axios = require('axios');
+
+const requestHeaders = {
+  "Content-Type": "application/json"
+};
+
+const requestBody = {
+  "amount": 1000,
+  "expireAfter": 1200,
+  "metaInfo": {
+
+Copy Code
+Run
+API Response
+1
+// Click "Run" to start a request and see the response here!
+You can also test this API request directly in Postman for a quick and easy integration check.
+
+Run in Postman ->
+What’s Next?
+After successfully creating a payment request, the next step is to initiate the payment process on your checkout page.
+
+Head over to the next section to learn how to launch the PayPage and complete the payment flow.
+
+
+
+Invoke iframe PayPage
+To start accepting payments using PhonePe’s PayPage, you need to include the PhonePe Checkout script in your checkout page. This script helps show the payment page to users and supports two ways of opening it:
+
+In IFrame (Recommended) – the PayPage opens within your website.
+In Redirect Mode – the user is redirected to a new page.
+Include the PhonePe Checkout Script
+To begin, add the following JavaScript file to your checkout page:
+
+Include script
+
+<script src="https://mercury.phonepe.com/web/bundle/checkout.js"></script>
+After adding this script:
+
+This script will append the PhonePeCheckout object in the window object.
+This object provides two functions:
+PhonePeCheckout.transact: used to open the PayPage.
+PhonePeCheckout.closePage: used to manually close the PayPage when it’s in IFrame mode.
+Use these functions in your checkout flow as per your payment experience requirement.
+
+Invoking PayPage in IFrame Mode (Recommended)
+To open the PayPage directly within your website using an IFrame, call the transact() function like this:
+
+Code reference
+
+window.PhonePeCheckout.transact({ tokenUrl: "https://merchant-t2.phonepe.com/transact....", callback, type: "IFRAME" });
+tokenUrl should be passed with the redirectUrl received in the Payment API response payload from your backend server.
+callback is a function that runs after the PayPage is closed.
+Here’s an example callback function:
+
+Code reference
+
+function callback (response) {
+  if (response === 'USER_CANCEL') {
+    /* Add merchant's logic if they have any custom thing to trigger on UI after the transaction is cancelled by the user*/
+    return;
+  } else if (response === 'CONCLUDED') {
+    /* Add merchant's logic if they have any custom thing to trigger on UI after the transaction is in terminal state*/
+    return;
+  }
+}
+The response will either be ‘USER_CANCEL‘ or ‘CONCLUDED‘, so you can update your UI based on the result.
+
+Closing the PayPage IFrame Manually
+If you want to close the PayPage on your own logic (only in IFrame mode), use this function:
+
+Code reference
+
+window.PhonePeCheckout.closePage();
+⚠️ Use Only for Exceptional Cases!
+
+This function is not recommended for standard use cases, as the IFrame will close automatically once the payment is done. Only use it if you have a specific reason to manually close the PayPage.
+
+Invoking PayPage in Redirect Mode
+If you want to open the PayPage in a new tab or redirect the user to it, use the transact() function like this:
+
+Code reference
+
+window.PhonePeCheckout.transact({ tokenUrl });
+tokenUrl is the PayPage link that your backend will get through a webhook call.
+This will take the user to PhonePe’s PayPage.
+After completing the payment, the user will be redirected back to your website.
+Make sure your backend verifies the payment status and shows the appropriate message or page to the user.
+
+Integrating PhonePe Checkout with Flutter Web.
+If you’re building a Flutter web application, follow these steps to integrate the PayPage.
+
+Include the PhonePe Checkout JavaScript Package
+Add the PhonePe Checkout JavaScript package to your project by including the following script.
+This will load the PhonePe Checkout package into your project and make the PhonePeCheckout object available in the global window context.
+Include script
+
+<script src="https://mercury-stg.phonepe.com/web/bundle/checkout.js" defer></script>
+Define a JavaScript Function to Invoke PayPage
+Create a JavaScript function that calls the PhonePe Checkout transact function with a callback. This function should accept three parameters: tokenUrl, type, and callback.
+This function checks if the PhonePeCheckout object and its transact method are available, then calls transact with the provided parameters.
+Code reference
+
+window.checkout = (tokenUrl, type, callback) => {
+  if(window && window.PhonePeCheckout && window.PhonePeCheckout.transact) {
+     window.PhonePeCheckout.transact({tokenUrl, callback, type});
+  }
+}
+Define a Callback Function in Your Dart Code
+In your Flutter Dart code, define a callback function that will be triggered when a transaction either concludes or is canceled.
+This callback function receives a response parameter, which indicates the transaction status. You can use this parameter to update your UI or trigger any custom logic depending on whether the user canceled the transaction or it was completed successfully.
+Code reference
+
+void callback(response) {
+   if (response === 'USER_CANCEL') {
+     // Add merchant's logic if they have any custom thing to trigger on UI after the transaction is canceled by the user
+     return;
+   } else if (response === 'CONCLUDED') {
+     // Add merchant's logic if they have any custom thing to trigger on UI after the transaction is in terminal state
+     return;
+   }
+}
+Call the Checkout Function from Dart to Open PayPage
+When you want to open the PayPage from your Flutter web app, you can check if the checkout function is defined in the JavaScript context and then call it with the required parameters: tokenUrl, type, and the callback wrapped with js.allowInterop.
+Code reference
+
+import 'dart:js' as js;
+void handlePayPage() {
+   if(js.context.hasProperty('checkout')) {
+      // The package is loaded   
+      const redirectUrl = "PayPage Generated URL";
+      const type = "IFRAME";    
+      js.context.callMethod('checkout', [redirectUrl, type, js.allowInterop(callback)]);
+   }
+}
+What’s Next?
+Once the PayPage has been presented and the customer completes the payment, you’ll want to track the status of the transaction to confirm whether it was successful, failed, or is still in progress.
+
+Head over to the next section to learn how to verify the final status of a payment.
+
+
+
+Check Payment Status
+The Order Status API enables you to check the current status of a specific order by providing its order ID. It returns information indicating whether the order has been successfully completed with payment details, is part of a split payment using PPE_INTENT, has no payment attempts yet, or if the payment has failed. Additionally, it handles cases where the provided order ID is invalid. This helps you reliably track and manage the order and take necessary actions based on its status.
+
+Environment
+Environment	HTTP Method	API
+Sandbox	GET	https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/{merchantOrderId}/status
+Production	GET	https://api.phonepe.com/apis/pg/checkout/v2/order/{merchantOrderId}/status
+Request
+Request Headers
+Header Name	Header Value
+Content-Type	application/json
+Authorization	O-Bearer <merchant-auth-token>
+⚠️ For Partner Integrations!
+
+It is mandatory to include the X-MERCHANT-ID header with the MerchantID of the end merchant.
+
+Request Parameters
+Parameter Name	Description
+details	• true → return all attempt details under paymentDetails list
+• false → return only latest attempt details under paymentDetails list
+errorContext	• true → To receive the errorContext block with error details if the state is FAILED.
+• false → If the errorContext block is not required.
+merchantOrderId	Order ID created in a Payment request.
+Sample CURL Request
+
+curl --location 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/TX123rrty34432456/status?details=false' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: O-Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3MTIyNTM2MjU2NDQsIm1lcmNoYW50SWQiOiJWMlNVQlVBVCJ9.7aVzYI_f_77-bBicEcRNuYx093b2wCsgl_WFNkKqAPY'
+Response
+Sample Response for the CURL Request
+
+{
+    "orderId": "OMO2403282020198641071317",
+    "state": "COMPLETED",
+    "amount": 1000,
+    "expireAt": 1711867462542,
+    "paymentDetails": [
+        {
+            "paymentMode": "UPI_QR",
+            "transactionId": "OM2403282020198651071949",
+            "timestamp": 1711694662542,
+            "amount": 1000,
+            "state": "COMPLETED",
+            "rail": {
+                "type": "UPI",
+                "utr": "<utr>",
+                "upiTransactionId": "<upiTransactionId>",
+                "vpa": "<vpa>"
+            },
+            "instrument": {
+                "type": "ACCOUNT",
+                "maskedAccountNumber": "<maskedAccountNumber>",
+                "accountType": "SAVINGS",
+                "accountHolderName": "<accountHolderName>"
+            }
+        }
+    ]
+}
+Case 1: Response for Order is completed and details = true
+
+{
+  "orderId": "OMO2407021511185686967711",
+  "state": "COMPLETED",
+  "amount": 1000,
+  "payableAmount": 1000,
+  "feeAmount": 0,
+  "expireAt": 1719913878566,
+  "metaInfo": {
+    "udf1": "",
+    "udf2": "",
+    "udf3": "",
+    "udf4": "",
+    "udf5": "",
+    "udf6": "",
+    "udf7": "",
+    "udf8": "",
+    "udf9": "",
+    "udf10": "",
+    "udf11": "",
+    "udf12": "",
+    "udf13": "",
+    "udf14": "",
+    "udf15": ""
+  },
+  "paymentDetails": [
+    {
+      "transactionId": "OM2407021515097451914211",
+      "paymentMode": "UPI_INTENT",
+      "timestamp": 1719913509762,
+      "amount": 1000,
+      "payableAmount": 1000,
+      "feeAmount": 0,
+      "state": "COMPLETED",
+      "rail": {
+        "type": "UPI",
+        "upiTransactionId": "upi12313",
+        "vpa": "12****78@ybl"
+      },
+      "instrument": {
+        "type": "ACCOUNT",
+        "maskedAccountNumber": "******1234",
+        "accountType": "SAVINGS"
+      },
+      "splitInstruments": [
+        {
+          "instrument": {
+            "type": "ACCOUNT",
+            "maskedAccountNumber": "******1234",
+            "accountType": "SAVINGS"
+          },
+          "rail": {
+            "type": "UPI",
+            "utr": "455069731511",
+            "upiTransactionId": "YBL369f6d962de74c2680789bff8c11aec9",
+            "vpa": "12****78@ybl"
+          },
+          "amount": 1000
+        }
+      ]
+    }
+  ]
+}
+Case 2: Response for PPE_INTENT split payment case
+
+{
+  "orderId": "OMO2407111823257502858511",
+  "state": "COMPLETED",
+  "amount": 200,
+  "payableAmount": 200,
+  "feeAmount": 0,
+  "expireAt": 1720703005748,
+  "metaInfo": {
+    "udf1": "",
+    "udf2": "",
+    "udf3": "",
+    "udf4": "",
+    "udf5": "",
+    "udf6": "",
+    "udf7": "",
+    "udf8": "",
+    "udf9": "",
+    "udf10": "",
+    "udf11": "",
+    "udf12": "",
+    "udf13": "",
+    "udf14": "",
+    "udf15": ""
+  },
+  "paymentDetails": [
+    {
+      "transactionId": "OM2407111823340281302812",
+      "paymentMode": "UPI_INTENT",
+      "timestamp": 1720702414053,
+      "amount": 200,
+      "payableAmount": 200,
+      "feeAmount": 0,
+      "state": "COMPLETED",
+      "splitInstruments": [
+        {
+          "instrument": {
+            "type": "ACCOUNT",
+            "maskedAccountNumber": "******1234",
+            "accountType": "SAVINGS"
+          },
+          "rail": {
+            "type": "UPI",
+            "utr": "455948340054",
+            "upiTransactionId": "YBLec33d3d277264fd8ac5deeabfece2494",
+            "vpa": "12****78@ybl"
+          },
+          "amount": 100
+        },
+        {
+          "instrument": {
+            "type": "WALLET"
+          },
+          "rail": {
+            "type": "PPI_WALLET"
+          },
+          "amount": 100
+        }
+      ]
+    }
+  ]
+}
+Case 3: Response for Payment Mode: CARD
+
+{
+    "orderId": "OMO2507241148405311106438",
+    "state": "COMPLETED",
+    "amount": 100,
+    "payableAmount": 100,
+    "feeAmount": 0,
+    "expireAt": 1753338820531,
+    "metaInfo":
+    {
+        "udf1": "Harshad",
+        "udf2": "30",
+        "udf3": "UDF3",
+        "udf4": "UDF4",
+        "udf5": "UDF5",
+        "udf6": "UDF6",
+        "udf7": "UDF7",
+        "udf8": "UDF8",
+        "udf9": "UDF9",
+        "udf10": "UDF10",
+        "udf11": "UDF11",
+        "udf12": "UDF12",
+        "udf13": "UDF13",
+        "udf14": "UDF14",
+        "udf15": "UDF15"
+    },
+    "paymentDetails":
+    [
+        {
+            "transactionId": "OM2507241150264011152620",
+            "paymentMode": "CARD",
+            "timestamp": 1753338026421,
+            "amount": 100,
+            "payableAmount": 100,
+            "feeAmount": 0,
+            "state": "COMPLETED",
+            "instrument":
+            {
+                "type": "CREDIT_CARD",
+                "bankId": "HDFC",
+                "brn": "520506406845",
+                "geoScope": "DOMESTIC",
+                "cardNetwork": "VISA",
+                "maskedCardNumber": "******1234"
+            },
+            "rail":
+            {
+                "type": "PG",
+                "authorizationCode": "088005"
+            },
+            "splitInstruments":
+            [
+                {
+                    "instrument":
+                    {
+                        "type": "CREDIT_CARD",
+                        "bankId": "HDFC",
+                        "brn": "520506406845",
+                        "geoScope": "DOMESTIC",
+                        "cardNetwork": "VISA",
+                        "maskedCardNumber": "******1234"
+                    },
+                    "rail":
+                    {
+                        "type": "PG",
+                        "authorizationCode": "088005"
+                    },
+                    "amount": 100
+                }
+            ]
+        }
+    ]
+}
+Case 4: Response for No payment attempt is made for the order
+
+{
+    "orderId": "OMO2407111821482103732111",
+    "state": "PENDING",
+    "amount": 100,
+    "expireAt": 1720702908208,
+    "metaInfo": {
+        "udf1": "<additional-information-1>",
+        "udf2": "<additional-information-2>",
+        "udf3": "<additional-information-3>",
+        "udf4": "<additional-information-4>",
+        "udf5": "<additional-information-5>",
+        "udf6": "<additional-information-6>",
+        "udf7": "<additional-information-7>",
+        "udf8": "<additional-information-8>",
+        "udf9": "<additional-information-9>",
+        "udf10": "<additional-information-10>",
+        "udf11": "<additional-information-11>",
+        "udf12": "<additional-information-12>",
+        "udf13": "<additional-information-13>",
+        "udf14": "<additional-information-14>",
+        "udf15": "<additional-information-15>"
+
+
+    },
+    "paymentDetails": []
+}
+Case 5: Response for Order is Failed
+
+{
+    "orderId": "OMO2407121214395503786511",
+    "state": "FAILED",
+    "amount": 200,
+    "expireAt": 1720767279548,
+    "errorCode": "INVALID_MPIN",
+    "detailedErrorCode": "ZM",
+    "metaInfo": {
+        "udf1": "<additional-information-1>",
+        "udf2": "<additional-information-2>",
+        "udf3": "<additional-information-3>",
+        "udf4": "<additional-information-4>",
+        "udf5": "<additional-information-5>",
+        "udf6": "<additional-information-6>",
+        "udf7": "<additional-information-7>",
+        "udf8": "<additional-information-8>",
+        "udf9": "<additional-information-9>",
+        "udf10": "<additional-information-10>",
+        "udf11": "<additional-information-11>",
+        "udf12": "<additional-information-12>",
+        "udf13": "<additional-information-13>",
+        "udf14": "<additional-information-14>",
+        "udf15": "<additional-information-15>"
+    },
+    "paymentDetails": [
+        {
+            "transactionId": "OM2407121214579231302711",
+            "paymentMode": "UPI_COLLECT",
+            "timestamp": 1720766697944,
+            "amount": 200,
+            "payableAmount": 200,
+            "feeAmount": 0,
+            "state": "FAILED",
+            "errorCode": "INVALID_MPIN",
+            "detailedErrorCode": "ZM"
+        }
+    ],
+    "errorContext": {
+       "errorCode" : "INVALID_MPIN",
+       "detailedErrorCode" : "ZM",
+       "source" : "CUSTOMER",
+       "stage" : "AUTHENTICATION",
+       "description" : "Wrong MPIN was entered"
+    }
+}
+Case 6: Response for Invalid order ID
+
+{  
+    "code": "INVALID_MERCHANT_ORDER_ID",
+    "message": "No entry found for given merchant order id"
+}
+Response Parameters
+Field Name	Data Type	Description
+orderId	String	Payment Gateway generated internal order ID
+state	String	State of order; Expected Values:
+• PENDING
+• FAILED
+• COMPLETED
+amount	String	Order amount in paisa
+expireAt	Long	Order expiry time in epoch
+metaInfo	Object	Merchant-defined meta information passed at the time of order creation
+paymentDetails	List	Contains a list of details of each payment attempt made corresponding to this order
+paymentDetails[*].paymentMode	String	Mode of payment; Expected Values:
+• UPI_INTENT
+• UPI_COLLECT
+• UPI_QR
+• CARD
+• NET_BANKING
+paymentDetails[*].timestamp	Long	Transaction attempt timestamp in epoch
+paymentDetails[*].amount	Long	Amount in paisa, corresponding to payment attempt
+paymentDetails[*].transactionId	String	Internal transaction ID for given payment attempt
+paymentDetails[*].state	String	Transaction attempt state; Expected Values:
+• PENDING
+• COMPLETED
+• FAILED
+paymentDetails[*].errorCode	String	Error code (Only present when the transaction state is failed)
+paymentDetails[*].detailedErrorCode	String	Detailed Error Code (Only present when the transaction state is failed)
+paymentDetails[*].rail	Object	Contains processing rail details under which payment attempt is made
+paymentDetails[*].rail.type	String	Type of rail. Expected values:
+• UPI
+• PG
+paymentDetails[*].instrument	Object	Contains instrument details
+paymentDetails[*].instrument.type	String	Type of payment instrument; Expected values:
+• ACCOUNT
+• CREDIT_CARD
+• DEBIT_CARD
+• NET_BANKING
+The metaInfo object contains additional parameters, which are explained in the table below.
+
+Response Parameters for metaInfo object:
+Field Name	Data Type	Description
+metaInfo	Object	Merchant-defined meta information passed at the time of order creation
+The paymentDetails object contains additional parameters, which are explained in the table below.
+
+Response Parameters for paymentDetails object:
+Field Name	Data Type	Description
+paymentDetails[*].paymentMode	String	Mode of payment; Expected Values:
+• UPI_INTENT
+• UPI_COLLECT
+• UPI_QR
+• CARD
+• NET_BANKING
+paymentDetails[*].timestamp	Long	Transaction attempt timestamp in epoch
+paymentDetails[*].amount	Long	Amount in paisa, corresponding to payment attempt
+paymentDetails[*].transactionId	String	Internal transaction ID for given payment attempt
+paymentDetails[*].state	String	Transaction attempt state; Expected Values:
+• PENDING
+• COMPLETED
+• FAILED
+paymentDetails[*].errorCode	String	Error code (Only present when the transaction state is failed)
+paymentDetails[*].detailedErrorCode	String	Detailed Error Code (Only present when the transaction state is failed)
+paymentDetails[*].rail	Object	Contains processing rail details under which payment attempt is made
+paymentDetails[*].rail.type	String	Type of rail. Expected values:
+• UPI
+• PG
+paymentDetails[*].instrument	Object	Contains instrument details
+paymentDetails[*].instrument.type	String	Type of payment instrument; Expected values:
+• ACCOUNT
+• CREDIT_CARD
+• DEBIT_CARD
+• NET_BANKING
+Verify a Sample Payment Status!
+headers
+Token
+string
+required
+Access Token you recieved
+O-Bearer 
+url params
+merchantOrderId
+string
+required
+Enter your merchantOrderId
+node
+node
+shell
+javascript
+python
+axios
+axios
+api
+node-fetch
+http
+request
+12345678910111213141516171819
+const axios = require('axios');
+
+const requestHeaders = {
+  "Content-Type": "application/json"
+};
+
+const options = {
+  method: 'GET',
+  url: 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/{{merchantOrderId}}/status',
+  headers: requestHeaders,
+
+Copy Code
+Run
+API Response
+1
+// Click "Run" to start a request and see the response here!
+You can also test this API request directly in Postman for a quick and easy integration check.
+
+Run in Postman ->
+What’s Next?
+After checking the status of an order, the next step may involve handling post payment actions such as issuing a refund. This is especially relevant for transactions that are failed, cancelled, or returned by the customer.
+
+Proceed to the next section to understand how to process refunds effectively.
+
+
+
+
+Initiate Refund and Check Refund Status
+
+This section explains how to initiate a refund for a successful transaction using the Refund API. You need to provide details like the original transaction ID, refund amount, and refund ID. After initiating the refund, you can use the Refund Status API to check whether the refund was successful, pending, or failed. These APIs help you manage the full refund lifecycle efficiently. Use them to ensure timely and transparent customer experiences.
+
+Initiate Refund
+The Refund API allows you to initiate refunds for specific transactions, returning funds to customers for reasons like order cancellations, returns, or payment adjustments. This ensures smooth and direct refund processing through the payment gateway.
+
+Environment
+Environment	HTTP Method	API
+Sandbox	POST	https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund
+Production	POST	https://api.phonepe.com/apis/pg/payments/v2/refund
+Initiating Refund Request
+Request Headers
+Header Name	Header Value
+Content-Type	application/json
+Authorization	O-Bearer <merchant-auth-token>
+⚠️ For Partner Integrations!
+
+It is mandatory to include the X-MERCHANT-ID header with the MerchantID of the end merchant.
+
+Request Parameters
+Field Name	Data Type	Mandatory(Y/N)	Description	Constraints
+merchantRefundId	String	Yes	Unique merchant refund ID generated by the merchant	Max Length = 63 characters
+originalMerchantOrderId	String	Yes	Original merchant order ID against which refund is required	
+amount	Long	Yes	Amount in paisa to refund	Min Value = 100
+Sample Request
+
+{
+    "merchantRefundId": "Refund-id-12345",
+    "originalMerchantOrderId": "Order-12345",
+    "amount": 1234
+}
+⚠️ Invalid Refund Amount!
+
+The refund amount cannot exceed the initiated amount. It must always be less than or equal to the amount originally initiated.
+
+Refund Initiation Response
+Case 1: Response for Refund initiated successfully
+
+{
+    "refundId": "OMRxxxxx"
+    "amount": 1234,
+    "state": "PENDING"
+}
+Response Parameters
+Field Name	Data Type	Description
+refundId	String	PG generated internal refund ID
+amount	Long	Amount in paisa to refund
+state	String	Refund state; expected value = PENDING
+Initiate a Sample Refund!
+headers
+Token
+string
+required
+Access Token you recieved
+O-Bearer 
+body params
+merchantRefundId
+string
+required
+Enter your merchantRefundId
+Refund-id-
+originalMerchantOrderId
+string
+required
+Enter your originalMerchantOrderId
+amount
+Int
+required
+Enter your amount
+node
+node
+shell
+javascript
+python
+axios
+axios
+api
+node-fetch
+http
+request
+12345678910111213141516171819
+const axios = require('axios');
+
+const requestHeaders = {
+  "Content-Type": "application/json"
+};
+
+const options = {
+  method: 'POST',
+  url: 'https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund',
+  headers: requestHeaders,
+
+Copy Code
+Run
+API Response
+1
+// Click "Run" to start a request and see the response here!
+You can also test this API request directly in Postman for a quick and easy integration check.
+
+Run in Postman ->
+
+Check Refund Status
+The Refund Status API allows you to check the current status of a refund request. It helps you track whether the refund is pending, processed, failed, or completed, enabling you to keep your records up to date and provide accurate information to your customers.
+
+Environment	HTTP Method	API
+Sandbox	GET	https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund/{merchantRefundId}/status
+Production	GET	https://api.phonepe.com/apis/pg/payments/v2/refund/{merchantRefundId}/status
+Refund Status Request
+Request Headers
+Header Name	Header Value
+Content-Type	application/json
+Authorization	O-Bearer <merchant-auth-token>
+⚠️ For Partner Integrations!
+
+It is mandatory to include the X-MERCHANT-ID header with the MerchantID of the end merchant.
+
+Refund Status Response
+Case 1: Original source of transaction = UPI
+
+{
+    "originalMerchantOrderId": "Order123",
+    "amount": 100,
+    "state": "COMPLETED",
+    "timestamp": 1730869961754,
+    "refundId": "OMR7878098045517540996",
+    "errorCode": "", // Only present in case of ERROR
+    "detailedErrorCode": "",   // Only present in case of ERROR
+    "splitInstruments": [
+        {
+            "amount": 100,
+            "rail": {
+                "type": "UPI",
+                "utr": "586756785",
+                "upiTransactionId": "YBL5bc011fa9f8644763b52b96a29a9655",
+                "vpa": "12****78@ybl"
+            },
+            "instrument": {
+                "type": "ACCOUNT",
+                "maskedAccountNumber": "******1234",
+                "accountType": "SAVINGS"
+            }
+        }
+    ]
+}
+Case 2: Original source of transaction = PPE_INTENT (Wallet)
+
+{
+    "originalMerchantOrderId": "Order123",
+    "amount": 500,
+    "state": "COMPLETED",
+    "timestamp": 1730869961754,
+    "refundId": "OMR7878098045517540996",
+    "errorCode": "", // Only present in case of ERROR
+    "detailedErrorCode": "",   // Only present in case of ERROR
+    "splitInstruments": [
+        {
+            "rail": {
+                "type": "UPI",
+                "utr": "586756785",
+                "upiTransactionId": "YBL5bc011fa9f8644763b52b96a29a9655",
+                "vpa": "12****78@ybl"
+            },
+            "instrument": {
+                "type": "ACCOUNT",
+                "maskedAccountNumber": "******1234",
+                "accountType": "SAVINGS"
+            },
+            "amount": 400
+        },
+        {
+            "rail": {
+                "type": "WALLET"
+            },
+            "instrument": {
+                "type": "WALLET"
+            },
+            "amount": 100
+        }
+    ]
+}
+Case 3: Original source of transaction = NetBanking
+
+{
+    "originalMerchantOrderId": "TX1752742884088",
+    "amount": 50,
+    "state": "COMPLETED",
+    "refundId": "OMR2507211657281836129569",
+    "timestamp": 1753097248198,
+    "splitInstruments": [
+        {
+            "instrument": {
+                "type": "NET_BANKING",
+                "bankId": "SBIN",
+                "brn": "brn123"
+            },
+            "rail": {
+                "type": "PG"
+            },
+            "amount": 50
+        }
+    ],
+    "paymentDetails": [
+        {
+            "transactionId": "OMR2507211657281836129569",
+            "paymentMode": "NET_BANKING",
+            "timestamp": 1753097248198,
+            "amount": 50,
+            "state": "COMPLETED",
+            "instrument": {
+                "type": "NET_BANKING",
+                "bankId": "SBIN"
+            },
+            "rail": {
+                "type": "PG"
+            },
+            "splitInstruments": [
+                {
+                    "instrument": {
+                        "type": "NET_BANKING",
+                        "bankId": "SBIN"
+                    },
+                    "rail": {
+                        "type": "PG"
+                    },
+                    "amount": 50
+                }
+            ]
+        }
+    ]
+}
+Response Parameters
+Field Name	Data Type	Description
+originalMerchantOrderId	String	Original merchant order ID against which refund is initiated
+amount	Long	Amount in paisa to refund
+state	String	Refund state; Expected values:
+• PENDING
+• CONFIRMED
+• COMPLETED
+• FAILED
+timestamp	Long	Transaction attempt timestamp in epoch.
+refundId	String	Refund Id generated by PhonePe.
+errorCode	String	Error code (Only present when transaction state is failed).
+detailedErrorCode	String	Detailed Error Code (Only present when transaction state is failed).
+splitInstruments.rail	String	Contains processing rail details under which payment attempt is made.
+splitInstruments.rail.type	String	Type of rail. Expected values
+• UPI
+• PG
+splitInstruments.instrument	String	Contains instrument details.
+splitInstruments.instrument.type	String	Type of payment instrument. Expected values :
+• ACCOUNT
+• CREDIT_CARD
+• DEBIT_CARD
+• NET_BANKING
+Fetch Refund Status!
+headers
+Token
+string
+required
+Access Token you recieved
+O-Bearer 
+url params
+merchantRefundId
+string
+required
+Enter your merchantRefundId
+node
+node
+shell
+javascript
+python
+axios
+axios
+api
+node-fetch
+http
+request
+12345678910111213141516171819
+const axios = require('axios');
+
+const requestHeaders = {
+  "Content-Type": "application/json"
+};
+
+const options = {
+  method: 'GET',
+  url: 'https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund/{{merchantRefundId}}/status',
+  headers: requestHeaders,
+
+Copy Code
+Run
+API Response
+1
+// Click "Run" to start a request and see the response here!
+You can also test this API request directly in Postman for a quick and easy integration check.
+
+Run in Postman ->
+
+What’s Next?
+In this section, you’ve learned how to initiate a refund and check its status. In the next section, you’ll understand how payment verification is handled using Webhooks, and how to manually verify the payment in case the Webhook callback fails.
+
+
+
+
+
+Webhook Handling
+PhonePe Payment Gateway uses Webhook (S2S Callbacks) to notify you about key events like payment completion or refund status. Here’s how it works:
+
+You need to provide a Webhook URL (a specific endpoint on your server) where these updates will be sent.
+To ensure secure communication, you should set up a username and password for authentication.
+Webhook Setup
+Configure Webhook: Follow these steps to set up a new webhook for receiving event notifications.
+Log in to your PhonePe Business Dashboard.
+Set the environment mode using the Test Mode toggle located on the dashboard.
+For Sandbox (Testing): Ensure the toggle is switched ON.
+For Production (Live): Ensure the toggle is switched OFF.
+Navigate to Developer Settings from the side menu.
+Select the Webhook tab and click the Create Webhook button.
+In the configuration form, fill in the following details:
+Webhook URL: Your server’s endpoint URL to receive notifications.
+Username: Your authentication username.
+Password: Your authentication password.
+Description: A brief description for your reference.
+From the list of active events, choose:
+Order Events:
+checkout.order.completed: Sent when an order is successfully completed
+checkout.order.failed: Sent when an order fails
+Refund Events:
+pg.refund.completed: Sent when a refund is successfully processed
+pg.refund.failed: Sent when a refund processing fails
+Click Create to save and complete the configuration.
+Your webhook is now active.
+Authorization.
+Once configured, PhonePe Payment Gateway will send updates to your server using the provided username and password.
+These credentials will be used to create an Authorization header in the webhook response using SHA256 (username:password) method.
+Verification.
+For the incoming request, extract the header Authorization, verify it with the one which you have shared with us and accept the response if the Username and password match.
+If the hash matches the one sent by PhonePe Payment Gateway, the update is valid, and the response payload can be consumed.
+If it doesn’t match, the response should be ignored.
+ℹ️ Authorization Header!
+
+PhonePe Payment Gateway includes the Authorization header in the following format:
+Authorization: SHA256(username:password)
+
+Callback Validation/Verification
+For the incoming request, extract the basic authorization header “Authorization”, verify it with the one which you have shared with us and accept the response if Username and password matches.
+Use the “payload.state” Parameter: For payment status, rely only on the root-level “payload.state” field in the response
+Avoid Strict Deserialization: Don’t use overly strict rules for processing the response
+Use the “event” Parameter: Ignore the “type” parameter in the webhook response. Use the “event” parameter instead to identify the event type
+Time Format: The expireAt and timestamp fields will be in epoch time
+Webhook Responses
+Response for Order Completed
+
+{
+    "event": "checkout.order.completed",
+    "payload": {
+        "orderId": "OMO2403282020198641071317",
+        "merchantId": "merchantId",
+        "merchantOrderId": "merchantOrderId",
+        "state": "COMPLETED",
+        "amount": 10000,
+        "expireAt": 1724866793837,
+        "metaInfo": {
+            "udf1": "",
+            "udf2": "",
+            "udf3": "",
+            "udf4": ""
+        },
+        "paymentDetails": [
+            {
+                "paymentMode": "UPI_QR",
+                "transactionId": "OM12334",
+                "timestamp": 1724866793837,
+                "amount": 10000,
+                "state": "COMPLETED"
+            }
+        ]
+    }
+}
+Response for Order Failed
+
+{
+    "event": "checkout.order.failed",
+    "payload": {
+        "orderId": "OMO2403282020198641071311",
+        "merchantId": "merchantId",
+        "merchantOrderId": "merchantOrderId",
+        "state": "FAILED",
+        "amount": 10000,
+        "expireAt": 1724866793837,
+        "metaInfo": {
+            "udf1": "",
+            "udf2": "",
+            "udf3": "",
+            "udf4": ""
+        },
+        "paymentDetails": [
+            {
+                "paymentMode": "UPI_COLLECT",
+                "timestamp": 1724866793837,
+                "amount": 10000,
+                "transactionId": "OM12333",
+                "state": "FAILED",
+                "errorCode": "AUTHORIZATION_ERROR",
+                "detailedErrorCode": "ZM"
+            }
+        ]
+    }
+}
+Response for Refund Completed
+Case 1: Original source of transaction = UPI
+
+{
+    "originalMerchantOrderId": "Order123",
+    "amount": 100,
+    "state": "COMPLETED",
+    "timestamp": 1730869961754,
+    "refundId": "OMR7878098045517540996",
+    "errorCode": "", // Only present in case of ERROR
+    "detailedErrorCode": "",   // Only present in case of ERROR
+    "splitInstruments": [
+        {
+            "amount": 100,
+            "rail": {
+                "type": "UPI",
+                "utr": "586756785",
+                "upiTransactionId": "YBL5bc011fa9f8644763b52b96a29a9655",
+                "vpa": "12****78@ybl"
+            },
+            "instrument": {
+                "type": "ACCOUNT",
+                "maskedAccountNumber": "******1234",
+                "accountType": "SAVINGS"
+            }
+        }
+    ]
+}
+Case 2: Original source of transaction = CARD
+
+{
+    "event": "pg.refund.completed",
+    "payload": {
+        "merchantId": "merchantId",
+        "merchantRefundId": "merchantRefundId",
+        "originalMerchantOrderId": "Refund-12345",
+        "amount": 50000,
+        "state": "COMPLETED",
+        "timestamp": 1730869961754,
+        "refundId": "OMR7878098045517540996",
+        "paymentDetails": [
+            {
+                "paymentMode": "UPI_INTENT",
+                "timestamp": 1706629419799,
+                "amount": 50000,
+                "transactionId": "OMR7896789",
+                "state": "COMPLETED"
+            }
+        ]
+    }
+}
+Case 3: Original source of transaction = NET_BANKING
+
+{
+    "originalMerchantOrderId": "TX1752742884088",
+    "amount": 50,
+    "state": "COMPLETED",
+    "refundId": "OMR2507211657281836129569",
+    "timestamp": 1753097248198,
+    "splitInstruments": [
+        {
+            "instrument": {
+                "type": "NET_BANKING",
+                "bankId": "SBIN",
+                "brn": "brn123"
+            },
+            "rail": {
+                "type": "PG"
+            },
+            "amount": 50
+        }
+    ],
+    "paymentDetails": [
+        {
+            "transactionId": "OMR2507211657281836129569",
+            "paymentMode": "NET_BANKING",
+            "timestamp": 1753097248198,
+            "amount": 50,
+            "state": "COMPLETED",
+            "instrument": {
+                "type": "NET_BANKING",
+                "bankId": "SBIN"
+            },
+            "rail": {
+                "type": "PG"
+            },
+            "splitInstruments": [
+                {
+                    "instrument": {
+                        "type": "NET_BANKING",
+                        "bankId": "SBIN"
+                    },
+                    "rail": {
+                        "type": "PG"
+                    },
+                    "amount": 50
+                }
+            ]
+        }
+    ]
+}
+Response for Refund Failed
+Case 1: Original source of transaction = UPI
+
+{
+    "event": "pg.refund.failed",
+    "payload": {
+        "originalMerchantOrderId": "",
+        "refundId": "OMRxxxxx",
+        "amount": 1234,
+        "state": "FAILED",
+        "timestamp": 1730869961754,
+        "refundId": "OMR7878098045517540996",
+        "errorCode": "AUTHORIZATION_ERROR",
+        "detailedErrorCode": "ZM",
+        "paymentDetails": [
+            {
+                "paymentMode": "UPI_INTENT",
+                "timestamp": 1706629419799,
+                "amount": 50000,
+                "transactionId": "OMR7896789",
+                "state": "FAILED",
+                "splitInstruments": [
+                    {
+                        "amount": 50000,
+                        "rail": {
+                            "type": "UPI",
+                            "upiTransactionId": "upi12313",
+                            "vpa": "12****78@ybl"
+                        },
+                        "instrument": {
+                            "type": "ACCOUNT",
+                            "accountType": "SAVINGS",
+                            "accountNumber": "******1234"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
+Case 2: Original source of transaction = CARD
+
+{
+    "event": "pg.refund.failed",
+    "payload": {
+        "originalMerchantOrderId": "",
+        "refundId": "OMRxxxxx",
+        "amount": 1234,
+        "state": "FAILED",
+        "timestamp": 1730869961754,
+        "refundId": "OMR7878098045517540996",
+        "errorCode": "AUTHORIZATION_ERROR",
+        "detailedErrorCode": "ZM",
+    }
+}
+Case 3: Original source of transaction = NET_BANKING
+
+{
+    "event": "pg.refund.failed",
+    "payload": {
+        "originalMerchantOrderId": "",
+        "refundId": "OMRxxxxx",
+        "amount": 1234,
+        "state": "FAILED",
+        "timestamp": 1730869961754,
+        "refundId": "OMR7878098045517540996",
+        "errorCode": "AUTHORIZATION_ERROR",
+        "detailedErrorCode": "ZM"
+    }
+}
+What if Webhook fails?
+If you don’t receive the Webhook callback, you can use the Order Status to manually check the payment status.
+
+What’s Next?
+Now that you have learned how to verify the payment and what happens when the webhook fails, this concludes your website integration. The next step is to complete UAT testing and understand the process to go live.
+
+
+
+
+Merchant Integration Checklist
+UAT Sign-Off Process
+Once your integration is completed, you must share your UAT instance for end-to-end flow verification.
+
+Any issues identified during the UAT stage must be resolved and reverified by your integration point of contact (POC) in the same UAT environment.
+The UAT sign-off will be provided only after all required use cases are successfully handled.
+Once sign-off is granted, you must acknowledge it to proceed further and receive Production Credentials.
+API-Wise Checklist
+This checklist helps ensure that you have addressed all the necessary use cases during your integration phase, leading to a smoother UAT closure.
+
+ℹ️ Must-Do!
+
+All use cases listed below are mandatory and must be implemented.
+
+1. Authorization API
+You must use the expires_at parameter in the response to manage your token lifecycle.
+
+Option 1: Validate Token Before Each Request
+
+Before making any API request:
+If the token is active: reuse it.
+If expired: call the Authorization API to generate a new one and use it.
+Option 2: Scheduled Token Renewal
+
+Set up a scheduler to regenerate the token 3–5 minutes before its actual expiry using the Authorization API.
+⚠️ Avoid Unnecessary Token Calls!
+
+Do not call the Authorization API before every request without first checking the token’s expiry.
+
+2. Payment API
+Request Parameters
+merchantOrderId: Always pass a unique ID for each transaction.
+expireAfter: Defines order expiry in seconds. If not passed, default value will be used. 
+For Standard Checkout: Min = 300, Max = 3600 seconds.
+amount: Must be passed in Paise (₹ × 100).
+udf in metaInfo: Use only if needed. Remove unused fields instead of leaving them empty.
+paymentFlow.redirectUrl: Provide your redirection URL where users should be returned after payment.
+paymentFlow.type: Set this to PG_CHECKOUT.
+Response Fields
+orderId: PhonePe-generated Order ID. You should map this with your merchantOrderId.
+redirectUrl: PhonePe Checkout URL. You must use this exactly as received, without modifications.
+3. Order Status API
+Avoid strict deserialization of the response.
+Use the root-level state parameter to determine payment status:
+COMPLETED → Payment Successful
+FAILED → Payment failed
+PENDING → Payment in progress
+Handling PENDING Transactions
+If the transaction status is PENDING, there are two handling options:
+
+Option 1: Mark as Failed
+Show a Payment Failed page to the user.
+Reconcile the transaction status on the server side until the terminal status (COMPLETED or FAILED) is reached.
+If the final status is COMPLETED, then initiate a Refund. Note: For this use case, it is strongly recommended to integrate the Refund API.
+Option 2: Mark as Pending
+Show a Payment Pending page to the user.
+Reconcile the transaction status on the backend until the terminal status (COMPLETED or FAILED) is determined.
+If the final status is COMPLETED, the order can be fulfilled accordingly.
+Reconciliation Schedule (Mandatory)
+When the transaction state is PENDING, you must call the Order Status API as per the below schedule:
+
+First status check: 20–25 seconds after transaction initiation.
+Then:
+Every 3 seconds for the next 30 seconds
+Every 6 seconds for the next 60 seconds
+Every 10 seconds for the next 60 seconds
+Every 30 seconds for the next 60 seconds
+Every 1 minute until the terminal status is reached
+(Or until the expireAfter value passed in the request is reached)
+4. Webhook Handling
+Avoid strict deserialization of the webhook payload.
+Rely only on the payload.state field for payment status.
+Ignore the type parameter (deprecated) and use the event field instead.
+expireAt and timestamp are epoch timestamps in milliseconds.
+Webhook Validation (Mandatory)
+Once you receive a webhook, calculate the Authorization header value as SHA256(username:password) and compare it with the value sent in the headers.
+If they match: process the update.
+If not: discard the webhook and refer to the Order Status API for the latest update.
+Webhook Setup
+UAT: Share your UAT webhook URL with the integration team to get it configured.
+Production: Configure your webhook directly via the PhonePe Business Dashboard.
+5. Refund API
+This section applies only if you initiate refunds via API (not through the dashboard).
+
+Required Parameters
+merchantRefundId: Must be unique for every refund.
+originalMerchantOrderId: Pass the original order ID for which the refund is being issued.
+amount: Enter the refund amount in Paise (₹ × 100).
+After you initiate a refund, the status will start as PENDING. The updated status must be tracked via Webhook and Refund Status API — both are mandatory.
+
+6. Refund Status API
+Avoid strict deserialization.
+Use the root-level state to track refund progress:
+PENDING → Refund is being processed.
+CONFIRMED → Still in progress, not yet final.
+COMPLETED → Refund successfully completed.
+FAILED → Refund failed — must be retried.
+Handling Ongoing Refunds
+If you receive the state parameter as PENDING or CONFIRMED in the Refund API response, then the Refund Status API with the merchantRefundId should be called for this refund transaction until the final state COMPLETED/FAILED is reached.
+The Scheduler/Cron Job must be set as per your convenience to get the terminal state.
+Also, make sure not to initiate another refund for the same transaction while previous refund transaction is still in the PENDING or CONFIRMED state.
+If you receive the state parameter as COMPLETED in the Refund Order Status API response, then the refund has been processed successfully.
+If you receive the state parameter as FAILED in the Refund Order Status API response, then the refund transaction has failed and the refund has to be reinitiated again with a unique merchantRefundId.
+What’s Next?
+You have now learned the mandatory steps and API handling required for a smooth integration and successful UAT completion. In the next section, we will guide you through the process of simulating complete payment flows to test your integration thoroughly. It uses templates that map APIs to predefined sample responses, allowing you to simulate various scenarios such as payment success, failure, and pending without making real transactions
+
+
+
+UAT Sandbox
+The UAT Sandbox allows you to simulate end to end payment flows and test your integration thoroughly. It uses templates that map APIs to predefined sample responses, enabling you to simulate various scenarios such as payment Success, Failure, and Pending without real transactions.
+
+Benefits of using the UAT Sandbox
+Even if the PhonePe UAT server is unavailable, the UAT Sandbox ensures a smooth testing experience. You can continue validating payment flows without disruptions.
+Simulate various payment outcomes such as success, failure, and pending states. This helps ensure your integration handles all real-world scenarios reliably.
+Thoroughly test the entire payment lifecycle from initiation to response. This ensures a stable and seamless experience when you move to production.
+Verifying Payment Lifecycle Using the UAT Sandbox
+The PhonePe UAT Sandbox offers various ways to verify the payment lifecycle across multiple payment methods. It allows you to simulate real world scenarios like success, failure, and pending statuses for comprehensive end to end testing even when the UAT server is unavailable.
+
+Follow the steps below to efficiently simulate, validate, and debug different payment flows in a controlled testing environment.
+
+1. Simulate Payment Flows on Standard Checkout
+Follow the steps below to verify different payment methods on the Standard Checkout page using the PhonePe UAT Sandbox.
+
+Update the Host URL for UAT Sandbox (PG Pay and PG Check Status APIs)
+To begin testing, replace the default host URL with the UAT Sandbox endpoint in your integration environment. This helps route all payment and status check requests to the sandbox for simulation.
+UAT Host URL: https://api-preprod.phonepe.com/apis/pgsandbox
+1.1 Install and Set Up the PhonePe Test App
+To validate payment flows using the PhonePe Test App:
+
+Android: [Download here] (Package Name: com.phonepe.simulator)
+iOS: Share your email ID with the PhonePe Integration Team on the integration thread. You will receive an invite via Firebase.
+⚠️ Allow Developer Access to Proceed!
+
+If you see “Untrusted Enterprise Developer”, follow these steps to trust the developer and continue with the installation.
+
+Follow these steps to proceed with installation:
+
+
+
+Go to Settings > General > VPN & Device Management.
+Tap on the Developer App.
+Select Trust [Developer].
+Confirm by selecting Trust again.
+2. Simulate UPI QR Payments
+Do not use the PhonePe Test App to scan the QR code.
+There is no need to manually set the template for success, failure, or pending scenarios.
+Instead, scan the UAT QR using any production version of the PhonePe app or other UPI apps.
+A link will appear on the screen and you can tap to open it in your browser.
+Once the link is opened, you can choose between “Success”, “Failure”, or “Pending” based on the flow you want to test. The template will be automatically applied according to your selection.
+
+
+3. Simulate UPI Collect Requests with VPA
+Do not use the PhonePe Simulator App to set the VPA under Settings
+There is no need to manually set templates for success, failure, or pending scenarios
+To verify and validate a VPA:
+For a valid VPA, use: success@ybl, failed@ybl, or pending@ybl
+For an invalid VPA, use any other random VPA that is not listed above.
+You can directly enter the following VPAs for testing purposes:
+Success: Use success@ybl. After clicking Pay, the redirection will happen within 5 seconds.
+Failure: Use failed@ybl. After clicking Pay, the redirection will happen within 5 seconds.
+Pending: Use pending@ybl. After clicking Pay, the redirection will happen within 60 seconds.
+
+
+4. Simulate Card and NetBanking Transactions
+There is no need to manually set the template for success, failure, or pending scenarios.
+Instead, you will be redirected to a page where you can choose Success, Failure, or Pending based on the flow you want to test. The template will be automatically set according to your selection.
+
+
+Setting Up Your Test Environment
+Click on “Test Case Templates” to configure Success, Failure, or Pending scenarios specifically for the PayPage UPI Intent flow.
+
+
+
+Configure Template for PayPage UPI Intent Flow
+To set up the required template for PayPage UPI Intent flow:
+
+Open the PhonePe Test App and tap on Test Case Templates.
+Enter your Merchant ID and click Get Configured Templates.
+If a template is already configured, it will be displayed.
+If not, you will see No Template Configured.
+For PG Integration, select the flow: Custom and Standard Checkout V2.
+Configure the template based on your test scenario—Success, Failure, or Pending.
+Download the Demo Video
+
+Steps to Configure Template
+Ensure you configure the correct templates specifically for Standard Checkout integration.
+
+Templates related to Standard Checkout begin with the keyword: “Paypage”.
+Select the appropriate template that matches the flow you want to simulate.
+
+
+Templates for PayPage UPI Intent
+Use the following templates to simulate different outcomes for PG – Mobile Intent flows:
+
+Success: Paypage Upi Intent Success
+Failure: Paypage Upi Intent Failure
+Pending: Paypage Upi Intent Pending
+Test Card Details
+Use the below test cards to simulate card transactions in the UAT environment.
+
+Credit Card
+Card Number: 4208 5851 9011 6667
+Card Type: CREDIT_CARD
+Issuer: VISA
+Expiry: 06/2027
+CVV: 508
+Debit Card
+Card Number: 4242 4242 4242 4242
+Card Type: DEBIT_CARD
+Issuer: VISA
+Expiry: 12/2023
+CVV: 936
+ℹ️ Simulation OTP
+
+Use OTP 123456 on the bank page to complete the transaction simulation.
+
+What’s Next?
+Now that you have learned how to simulate the UAT sandbox environment, we will now walk you through the process of going live with your integration.
+
+
+
+
+Go Live Process
+After completing your integration, share the testing URL/App with the PhonePe Integration Team for a final sanity check.
+Once the integration is verified in UAT, UAT Sign-off will be provided, and Production credentials will be shared with you by PhonePe.
+
+Follow the steps below to migrate from UAT to Production and go live:
+
+1. Replace Host URLs
+Update the API host endpoints from UAT to Production as follows:
+
+APIs	Production Host URLs
+Auth Token API	https://api.phonepe.com/apis/identity-manager
+Other APIs (Payment, Status, Refund)	https://api.phonepe.com/apis/pg
+2. Replace Client ID and Secret Key
+Use your Production credentials:
+Replace the UAT Client ID and Client Secret with your Production Client ID and Client Secret to generate the Production Auth Token.
+
+3: Generate Production Auth Token
+Call the Auth Token API using your production credentials and use the generated token in all production API calls:
+
+Payment Initiation
+Order Status
+Refund
+SDK Configuration for Production
+Android SDK
+Initialize the PhonePe SDK using PhonePeEnvironment.RELEASE
+Set enableLogging to false
+appId is optional and can be passed as null or ""
+Code Reference
+
+val result = PhonePeKt.init(
+  context = this,
+  merchantId = "MID",
+  flowId = "FLOW_ID",
+  phonePeEnvironment= PhonePeEnvironment.RELEASE,
+  enableLogging = false,
+  appId = null 
+)
+iOS SDK
+Initialize the PhonePe SDK with environment as .production
+Set enableLogging to false
+Code Reference
+
+let ppPayment = PPPayment(environment: .production,
+                          merchantId: "MERCHANT_ID",
+                          enableLogging: false)
+You are now ready to go live with your PhonePe integration in the Production environment.
+With UAT successfully completed and the Production credentials in place, all necessary steps have been covered to ensure a smooth transition.
+
+Hybrid SDK
+Initialize the PhonePe SDK init method as below
+environment as PRODUCTION
+merchantId with Production MID
+Make sure the enableLogging flag is set to False in Production.
+We wish you a successful go-live and continued operational excellence.
+— PhonePe Integration Team

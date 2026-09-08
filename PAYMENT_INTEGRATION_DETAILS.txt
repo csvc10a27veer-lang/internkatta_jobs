@@ -1,0 +1,755 @@
+================================================================================
+                    PHONEPE PAYMENT INTEGRATION - COMPLETE DETAILS
+================================================================================
+
+Date Created: 2024
+Integration Type: PhonePe v2 API with OAuth 2.0 Authentication
+Payment Gateway: PhonePe
+API Version: v2
+
+================================================================================
+                            PRODUCTION CREDENTIALS
+================================================================================
+
+MERCHANT ID (Production):
+-------------------------
+SU2508251500285640112856
+
+SALT KEY (Production):
+-----------------------
+006c20b2-0a39-423a-9cd3-8e359879dd15
+
+SALT INDEX (Production):
+-------------------------
+1
+
+PRODUCTION API ENDPOINTS:
+-------------------------
+Base URL: https://api.phonepe.com/apis/pg/checkout
+Auth Token URL: https://api.phonepe.com/apis/identity-manager/v1/oauth/token
+Payment Initiation: https://api.phonepe.com/apis/pg/checkout/v2/pay
+Payment Status: https://api.phonepe.com/apis/pg/checkout/v2/status/{transactionId}
+
+PRODUCTION CALLBACK URLs:
+-------------------------
+Backend Callback URL: https://InternKatta.gradezy.in/api/payment/callback
+Frontend Redirect URL: https://InternKatta.gradezy.in/payment/callback
+
+PRODUCTION ENVIRONMENT:
+-----------------------
+Environment: PRODUCTION
+Domain: InternKatta.gradezy.in
+API Domain: api.InternKatta.gradezy.in
+
+================================================================================
+                            TEST/DEVELOPMENT CREDENTIALS
+================================================================================
+
+MERCHANT ID (Test/UAT):
+------------------------
+your_test_merchant_id
+(Note: Replace with actual test merchant ID from PhonePe dashboard)
+
+SALT KEY (Test/UAT):
+--------------------
+your_test_salt_key
+(Note: Replace with actual test salt key from PhonePe dashboard)
+
+SALT INDEX (Test/UAT):
+-----------------------
+1
+
+TEST API ENDPOINTS:
+-------------------
+Base URL: https://api-preprod.phonepe.com/apis/pg/checkout
+Auth Token URL: https://api-preprod.phonepe.com/apis/identity-manager/v1/oauth/token
+Payment Initiation: https://api-preprod.phonepe.com/apis/pg/checkout/v2/pay
+Payment Status: https://api-preprod.phonepe.com/apis/pg/checkout/v2/status/{transactionId}
+
+TEST CALLBACK URLs (Local Development):
+----------------------------------------
+Backend Callback URL: http://localhost:4000/api/payment/callback
+Frontend Redirect URL: http://localhost:5173/payment/callback
+
+TEST ENVIRONMENT:
+-----------------
+Environment: UAT (User Acceptance Testing)
+Local Development: http://localhost:5173 (Frontend)
+Local Backend: http://localhost:4000 (Backend)
+
+================================================================================
+                        ENVIRONMENT VARIABLES CONFIGURATION
+================================================================================
+
+PRODUCTION ENVIRONMENT VARIABLES (.env.production):
+---------------------------------------------------
+NODE_ENV=production
+PORT=4000
+FRONTEND_URL=https://InternKatta.gradezy.in
+
+# PhonePe Production Configuration
+PHONEPE_MERCHANT_ID=SU2508251500285640112856
+PHONEPE_SALT_KEY=006c20b2-0a39-423a-9cd3-8e359879dd15
+PHONEPE_SALT_INDEX=1
+PHONEPE_BASE_URL=https://api.phonepe.com/apis/pg/checkout
+PHONEPE_AUTH_TOKEN_URL=https://api.phonepe.com/apis/identity-manager/v1/oauth/token
+PHONEPE_CALLBACK_URL=https://InternKatta.gradezy.in/api/payment/callback
+PHONEPE_REDIRECT_URL=https://InternKatta.gradezy.in/payment/callback
+PHONEPE_ENVIRONMENT=PRODUCTION
+
+TEST/DEVELOPMENT ENVIRONMENT VARIABLES (.env.local):
+----------------------------------------------------
+NODE_ENV=development
+PORT=4000
+FRONTEND_URL=http://localhost:5173
+
+# PhonePe Test Configuration
+PHONEPE_MERCHANT_ID=your_test_merchant_id
+PHONEPE_SALT_KEY=your_test_salt_key
+PHONEPE_SALT_INDEX=1
+PHONEPE_BASE_URL=https://api-preprod.phonepe.com/apis/pg/checkout
+PHONEPE_AUTH_TOKEN_URL=https://api-preprod.phonepe.com/apis/identity-manager/v1/oauth/token
+PHONEPE_CALLBACK_URL=http://localhost:4000/api/payment/callback
+PHONEPE_REDIRECT_URL=http://localhost:5173/payment/callback
+PHONEPE_ENVIRONMENT=UAT
+
+================================================================================
+                            API ENDPOINTS & ROUTES
+================================================================================
+
+BACKEND API ENDPOINTS:
+----------------------
+
+1. Create Course Payment
+   Method: POST
+   URL: /api/payment/course
+   Request Body:
+   {
+     "courseId": "course_id_here",
+     "userId": "user_id_here",
+     "couponCode": "COUPON_CODE" (optional),
+     "finalPrice": 999.00 (optional, for validation)
+   }
+   Response:
+   {
+     "success": true,
+     "paymentUrl": "https://phonepe.com/pay/...",
+     "transactionId": "TXN_1234567890_ABC123",
+     "phonepeTransactionId": "PHONEPE_ORDER_ID"
+   }
+
+2. Create Internship Payment
+   Method: POST
+   URL: /api/payment/internship
+   Request Body:
+   {
+     "internshipId": "internship_id_here",
+     "userId": "user_id_here",
+     "couponCode": "COUPON_CODE" (optional),
+     "finalPrice": 999.00 (optional, for validation)
+   }
+   Response:
+   {
+     "success": true,
+     "paymentUrl": "https://phonepe.com/pay/...",
+     "transactionId": "TXN_1234567890_ABC123",
+     "phonepeTransactionId": "PHONEPE_ORDER_ID"
+   }
+
+3. Payment Callback (PhonePe Webhook)
+   Method: POST
+   URL: /api/payment/callback
+   Request Body (from PhonePe):
+   {
+     "merchantOrderId": "TXN_1234567890_ABC123",
+     "orderId": "PHONEPE_ORDER_ID",
+     "amount": 10000, (in paise)
+     "status": "PAYMENT_SUCCESS" or "PAYMENT_ERROR",
+     "paymentInstrument": {...}
+   }
+
+4. Get Payment Status
+   Method: GET
+   URL: /api/payment/status/:transactionId
+   Response:
+   {
+     "success": true,
+     "payment": {
+       "transactionId": "TXN_1234567890_ABC123",
+       "status": "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED",
+       "amount": 999.00,
+       "type": "COURSE" | "INTERNSHIP",
+       ...
+     }
+   }
+
+5. Check User Purchase
+   Method: GET
+   URL: /api/payment/check/:userId/:itemType/:itemId
+   Example: /api/payment/check/507f1f77bcf86cd799439011/course/507f191e810c19729de860ea
+   Response:
+   {
+     "success": true,
+     "hasPurchased": true/false,
+     "payment": {...} or null
+   }
+
+6. Get All Payments (Admin)
+   Method: GET
+   URL: /api/payment/admin/all?type=COURSE&status=COMPLETED&page=1&limit=10
+   Query Parameters:
+   - type: COURSE | INTERNSHIP (optional)
+   - status: PENDING | COMPLETED | FAILED | CANCELLED (optional)
+   - page: page number (default: 1)
+   - limit: items per page (default: 10)
+
+7. Test PhonePe Configuration
+   Method: GET
+   URL: /api/payment/test-config
+   Response:
+   {
+     "success": true,
+     "message": "PhonePe configuration test successful",
+     "data": {
+       "authToken": "SET",
+       "timestamp": "2024-01-01T00:00:00.000Z"
+     }
+   }
+
+8. Check PhonePe Status
+   Method: GET
+   URL: /api/payment/phonepe-status/:transactionId
+   Response:
+   {
+     "success": true,
+     "message": "PhonePe status retrieved successfully",
+     "data": {...}
+   }
+
+================================================================================
+                            PAYMENT FLOW DETAILS
+================================================================================
+
+STEP 1: PAYMENT INITIATION
+---------------------------
+1. User selects a course or internship on the frontend
+2. Frontend sends POST request to /api/payment/course or /api/payment/internship
+3. Backend validates:
+   - Course/Internship exists
+   - User exists
+   - User hasn't already purchased the item
+   - Coupon code (if provided) is valid
+4. Backend generates unique transaction ID (format: TXN_timestamp_randomString)
+5. Backend creates payment record in database with status: PENDING
+6. Backend gets PhonePe OAuth 2.0 authorization token:
+   - POST to AUTH_TOKEN_URL
+   - Request body: client_id, client_version, client_secret, grant_type
+   - Response: access_token
+7. Backend creates payment payload:
+   {
+     "merchantOrderId": "TXN_...",
+     "amount": amount_in_paise, (amount * 100)
+     "paymentFlow": {
+       "type": "PG_CHECKOUT",
+       "merchantUrls": {
+         "redirectUrl": "https://InternKatta.gradezy.in/payment/callback?transactionId=..."
+       }
+     }
+   }
+8. Backend calls PhonePe v2 API:
+   - POST to BASE_URL/v2/pay
+   - Headers: Content-Type: application/json, Authorization: O-Bearer {access_token}
+   - Body: payment payload
+9. PhonePe returns redirect URL
+10. Backend returns payment URL to frontend
+11. Frontend redirects user to PhonePe payment page
+
+STEP 2: PAYMENT PROCESSING
+---------------------------
+1. User completes payment on PhonePe
+2. PhonePe processes payment
+3. PhonePe sends callback to backend:
+   - POST to /api/payment/callback
+   - Body contains payment status and details
+4. Backend processes callback:
+   - Finds payment record by merchantOrderId (transactionId)
+   - Verifies amount matches
+   - Updates payment status:
+     - If PAYMENT_SUCCESS: status = COMPLETED
+     - If PAYMENT_ERROR: status = FAILED
+5. If payment successful:
+   - Enrolls user in course/internship
+   - Marks coupon as used (if applicable)
+   - Updates payment record with completion date
+6. PhonePe redirects user to frontend redirect URL
+7. Frontend checks payment status and shows success/failure message
+
+STEP 3: PAYMENT STATUS CHECKING
+--------------------------------
+1. Frontend can poll payment status using transaction ID
+2. GET /api/payment/status/:transactionId
+3. Backend checks database for payment record
+4. If status is PENDING, backend queries PhonePe API for latest status
+5. Backend updates payment record if status changed
+6. Returns current payment status to frontend
+
+================================================================================
+                        AUTHENTICATION & SECURITY
+================================================================================
+
+AUTHENTICATION METHOD:
+---------------------
+OAuth 2.0 Client Credentials Flow
+
+AUTHORIZATION TOKEN GENERATION:
+-------------------------------
+1. Request URL: AUTH_TOKEN_URL
+2. Method: POST
+3. Content-Type: application/x-www-form-urlencoded
+4. Request Body:
+   - client_id: MERCHANT_ID
+   - client_version: SALT_INDEX
+   - client_secret: SALT_KEY
+   - grant_type: client_credentials
+5. Response:
+   {
+     "access_token": "token_here",
+     "token_type": "Bearer",
+     "expires_in": 3600
+   }
+
+AUTHORIZATION HEADER FORMAT:
+----------------------------
+Authorization: O-Bearer {access_token}
+
+SECURITY FEATURES:
+------------------
+1. OAuth 2.0 authentication with PhonePe
+2. Environment variable configuration (credentials not hardcoded)
+3. Request validation (amount, user, item validation)
+4. Amount verification in callback
+5. Transaction ID validation
+6. Unique transaction ID generation
+7. Payment record tracking in database
+
+================================================================================
+                        DATABASE SCHEMA (Payment Model)
+================================================================================
+
+Payment Model Fields:
+---------------------
+- transactionId: String (unique, required) - Format: TXN_timestamp_randomString
+- userId: ObjectId (required) - Reference to User model
+- courseId: ObjectId (optional) - Reference to Course model
+- internshipId: ObjectId (optional) - Reference to Internship model
+- type: String (required) - Enum: ['COURSE', 'INTERNSHIP']
+- amount: Number (required) - Final amount after discount
+- originalAmount: Number - Original price before discount
+- couponCode: String (optional) - Coupon code used
+- couponId: ObjectId (optional) - Reference to Coupon model
+- status: String (required) - Enum: ['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED']
+- phonepeTransactionId: String - PhonePe's order ID
+- phonepeResponse: Object - Full response from PhonePe
+- paymentDetails: Object - Payment details from callback
+- orderId: String (unique) - Auto-generated format: ORD_timestamp_randomString
+- customerName: String
+- customerEmail: String
+- customerPhone: String
+- paymentMethod: String - e.g., 'PHONEPE'
+- paymentDate: Date (default: Date.now)
+- completedDate: Date
+- failureReason: String
+- refundStatus: String - Enum: ['NONE', 'PENDING', 'COMPLETED', 'FAILED']
+- refundAmount: Number (default: 0)
+- refundDate: Date
+- createdAt: Date (auto)
+- updatedAt: Date (auto)
+
+Indexes:
+--------
+- transactionId (unique index)
+- userId
+- status
+- type
+- paymentDate (descending)
+
+================================================================================
+                        CONFIGURATION FILES
+================================================================================
+
+MAIN CONFIGURATION FILE:
+------------------------
+Location: backend/config/phonepeConfig.js
+
+Exports:
+--------
+- PHONEPE_CONFIG: Configuration object with all PhonePe settings
+- generatePhonePeTransactionId(): Generates unique transaction ID
+- generateChecksum(): Generates checksum for API requests (legacy, not used in v2)
+- verifyChecksum(): Verifies checksum from PhonePe (legacy, not used in v2)
+- createPaymentPayload(): Creates payment payload for PhonePe API
+- createHeaders(): Creates request headers with authorization token
+- getAuthToken(): Gets OAuth 2.0 access token from PhonePe
+
+CONFIGURATION OBJECT STRUCTURE:
+-------------------------------
+{
+  MERCHANT_ID: 'SU2508251500285640112856',
+  SALT_KEY: '006c20b2-0a39-423a-9cd3-8e359879dd15',
+  SALT_INDEX: '1',
+  BASE_URL: 'https://api.phonepe.com/apis/pg/checkout',
+  AUTH_TOKEN_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
+  CALLBACK_URL: 'https://InternKatta.gradezy.in/api/payment/callback',
+  REDIRECT_URL: 'https://InternKatta.gradezy.in/payment/callback',
+  ENVIRONMENT: 'PRODUCTION'
+}
+
+================================================================================
+                        TRANSACTION ID FORMATS
+================================================================================
+
+INTERNAL TRANSACTION ID:
+------------------------
+Format: TXN_{timestamp}_{randomString}
+Example: TXN_1704067200000_ABC123XYZ
+Generated by: generatePhonePeTransactionId()
+
+PHONEPE ORDER ID:
+-----------------
+Format: Provided by PhonePe API
+Stored in: paymentRecord.phonepeTransactionId
+
+INTERNAL ORDER ID:
+------------------
+Format: ORD_{timestamp}_{randomString}
+Example: ORD_1704067200000_DEF456UVW
+Auto-generated: Before saving payment record to database
+
+================================================================================
+                        AMOUNT HANDLING
+================================================================================
+
+AMOUNT CONVERSION:
+------------------
+- Database stores amount in Rupees (e.g., 999.00)
+- PhonePe API requires amount in Paise (e.g., 99900)
+- Conversion: amount_in_paise = amount_in_rupees * 100
+
+AMOUNT VALIDATION:
+------------------
+1. Frontend sends finalPrice (optional) for validation
+2. Backend calculates actual final price:
+   - Starts with course/internship price
+   - Applies discount if coupon provided
+   - Validates against frontend finalPrice if provided
+3. Backend verifies amount in callback:
+   - Converts database amount to paise
+   - Compares with PhonePe callback amount
+   - Rejects if mismatch
+
+================================================================================
+                        COUPON INTEGRATION
+================================================================================
+
+COUPON VALIDATION:
+------------------
+1. Check coupon exists and is active
+2. Check coupon is valid for the course/internship
+3. Check coupon hasn't expired (validUntil > current date)
+4. Check usage limit not exceeded (usedCount < usageLimit)
+5. Check user hasn't already used this coupon
+6. Calculate discount:
+   - Percentage: (price * discountAmount) / 100
+   - Fixed: discountAmount
+   - Apply maxDiscountAmount if specified
+7. Ensure discount doesn't exceed item price
+
+COUPON USAGE:
+-------------
+- When payment is completed:
+  - Add user to coupon.usedBy array
+  - Increment coupon.usedCount
+  - Save coupon record
+
+================================================================================
+                        ERROR HANDLING
+================================================================================
+
+COMMON ERRORS & HANDLING:
+-------------------------
+1. Authorization Token Failed:
+   - Error: Failed to retrieve access_token from PhonePe
+   - Check: PhonePe credentials, network connectivity
+   - Log: Full error response from PhonePe
+
+2. Payment Initiation Failed:
+   - Error: PhonePe payment initiation failed
+   - Check: Payload format, required fields, authorization token
+   - Log: Request payload, headers, PhonePe response
+
+3. Callback Not Received:
+   - Check: Callback URL configuration in PhonePe dashboard
+   - Verify: Backend endpoint is accessible
+   - Check: Network/firewall settings
+
+4. Status Check Failed:
+   - Error: Failed to check PhonePe status
+   - Check: Transaction ID validity, PhonePe API access
+   - Log: Transaction ID, API response
+
+5. Amount Mismatch:
+   - Error: Amount mismatch in callback
+   - Action: Reject payment, log discrepancy
+   - Check: Amount calculation, conversion to paise
+
+6. Payment Record Not Found:
+   - Error: Payment record not found for transaction
+   - Check: Transaction ID format, database query
+   - Log: Transaction ID, database search
+
+================================================================================
+                        TESTING INFORMATION
+================================================================================
+
+TEST SCRIPT:
+------------
+Location: backend/test_phonepe_integration.js
+
+Test Steps:
+-----------
+1. Test PhonePe Configuration
+   - Verify MERCHANT_ID, SALT_KEY, BASE_URL are set
+   - Check ENVIRONMENT setting
+
+2. Test Authorization Token Generation
+   - Call getAuthToken()
+   - Verify access_token is received
+   - Check token format
+
+3. Test PhonePe v2 API Endpoint
+   - Create test payload
+   - Call PhonePe API with test transaction
+   - Verify response contains redirectUrl
+
+Running Tests:
+--------------
+cd backend
+node test_phonepe_integration.js
+
+TEST ENDPOINTS:
+---------------
+1. GET /api/payment/test-config
+   - Tests PhonePe configuration
+   - Returns auth token status
+
+2. GET /api/payment/phonepe-status/:transactionId
+   - Checks PhonePe payment status
+   - Useful for debugging
+
+================================================================================
+                        LOGGING & DEBUGGING
+================================================================================
+
+DEBUG LOGS:
+-----------
+The integration includes comprehensive logging:
+
+1. Authorization Token Generation:
+   - 🔐 Generating PhonePe Authorization Token...
+   - ✅ PhonePe Authorization Token Response: {...}
+   - ❌ Error generating PhonePe Authorization Token: {...}
+
+2. API Request Details:
+   - --- PhonePe v2 API Request Details ---
+   - Timestamp: ISO timestamp
+   - API URL: Full API endpoint
+   - Headers Sent: Request headers (token masked)
+   - Payload: Full payment payload
+   - --- End PhonePe v2 API Request Details ---
+
+3. Payment Callback:
+   - PhonePe v2 callback received: {...}
+   - Payment completed successfully for transaction: {...}
+   - Payment failed for transaction: {...}
+
+4. User Enrollment:
+   - User enrolled in course: {...}
+   - User enrolled in internship: {...}
+   - Coupon marked as used: {...}
+
+================================================================================
+                        INTEGRATION FILES
+================================================================================
+
+BACKEND FILES:
+--------------
+1. backend/config/phonepeConfig.js
+   - PhonePe configuration
+   - Helper functions for API interaction
+
+2. backend/controllers/paymentController.js
+   - Payment creation logic
+   - Callback handling
+   - Status checking
+   - User enrollment
+
+3. backend/models/paymentModel.js
+   - Payment database schema
+   - Payment model definition
+
+4. backend/routes/paymentRoute.js
+   - API route definitions
+   - Route handlers
+
+5. backend/test_phonepe_integration.js
+   - Test script for PhonePe integration
+
+DOCUMENTATION FILES:
+--------------------
+1. backend/PHONEPE_INTEGRATION_README.md
+   - Integration documentation
+   - API usage guide
+
+2. DEPLOYMENT_GUIDE.md
+   - Production deployment guide
+   - Environment configuration
+
+3. PRODUCTION_DEPLOYMENT_READY.md
+   - Production setup details
+
+4. LOCAL_DEVELOPMENT_SETUP.md
+   - Local development setup guide
+
+================================================================================
+                        IMPORTANT NOTES
+================================================================================
+
+1. CREDENTIALS SECURITY:
+   - Never commit credentials to version control
+   - Use environment variables for all sensitive data
+   - Keep production credentials secure
+   - Rotate credentials if compromised
+
+2. CALLBACK URL CONFIGURATION:
+   - Must be configured in PhonePe merchant dashboard
+   - Must be accessible from PhonePe servers
+   - Must use HTTPS in production
+   - Must match exactly (including trailing slashes)
+
+3. AMOUNT HANDLING:
+   - Always convert to paise for PhonePe API
+   - Always verify amount in callback
+   - Store amount in rupees in database
+
+4. TRANSACTION ID:
+   - Must be unique for each payment
+   - Format: TXN_timestamp_randomString
+   - Used to track payment throughout flow
+
+5. PAYMENT STATUS:
+   - PENDING: Payment initiated, waiting for user action
+   - COMPLETED: Payment successful, user enrolled
+   - FAILED: Payment failed or rejected
+   - CANCELLED: Payment cancelled by user
+
+6. TESTING:
+   - Always test in UAT environment first
+   - Use test credentials for development
+   - Verify callback URL accessibility
+   - Test all payment scenarios
+
+7. ERROR HANDLING:
+   - Always log errors with full context
+   - Return user-friendly error messages
+   - Don't expose sensitive information in errors
+
+8. API VERSION:
+   - Currently using PhonePe v2 API
+   - Uses OAuth 2.0 authentication
+   - Legacy v1 API (checksum-based) is not used
+
+================================================================================
+                        SUPPORT & TROUBLESHOOTING
+================================================================================
+
+COMMON ISSUES:
+--------------
+
+1. Authorization Token Failed
+   - Solution: Verify PhonePe credentials are correct
+   - Check: Network connectivity to PhonePe API
+   - Verify: Merchant account is active
+
+2. Payment Initiation Failed
+   - Solution: Check payload format matches PhonePe requirements
+   - Verify: Authorization token is valid
+   - Check: All required fields are present
+
+3. Callback Not Received
+   - Solution: Verify callback URL in PhonePe dashboard
+   - Check: Backend endpoint is accessible
+   - Verify: Firewall/network settings allow PhonePe IPs
+
+4. Status Check Failed
+   - Solution: Verify transaction ID is correct
+   - Check: PhonePe API access
+   - Verify: Authorization token is valid
+
+5. Amount Mismatch
+   - Solution: Check amount conversion (rupees to paise)
+   - Verify: Coupon discount calculation
+   - Check: Database amount matches PhonePe amount
+
+RESOURCES:
+----------
+- PhonePe API Documentation: https://developer.phonepe.com/
+- PhonePe Merchant Dashboard: https://merchant.phonepe.com/
+- PhonePe Support: Contact PhonePe support team
+
+================================================================================
+                        QUICK REFERENCE
+================================================================================
+
+PRODUCTION CREDENTIALS:
+----------------------
+MERCHANT_ID: SU2508251500285640112856
+SALT_KEY: 006c20b2-0a39-423a-9cd3-8e359879dd15
+SALT_INDEX: 1
+BASE_URL: https://api.phonepe.com/apis/pg/checkout
+ENVIRONMENT: PRODUCTION
+
+TEST CREDENTIALS:
+----------------
+MERCHANT_ID: your_test_merchant_id (get from PhonePe dashboard)
+SALT_KEY: your_test_salt_key (get from PhonePe dashboard)
+SALT_INDEX: 1
+BASE_URL: https://api-preprod.phonepe.com/apis/pg/checkout
+ENVIRONMENT: UAT
+
+KEY API ENDPOINTS:
+------------------
+POST /api/payment/course - Create course payment
+POST /api/payment/internship - Create internship payment
+POST /api/payment/callback - PhonePe callback
+GET /api/payment/status/:transactionId - Get payment status
+GET /api/payment/check/:userId/:itemType/:itemId - Check user purchase
+
+PAYMENT FLOW:
+-------------
+1. User selects item → 2. Frontend calls API → 3. Backend gets auth token
+4. Backend calls PhonePe API → 5. PhonePe returns payment URL
+6. User pays on PhonePe → 7. PhonePe sends callback → 8. Backend processes
+9. User enrolled → 10. Frontend shows success
+
+================================================================================
+                            END OF DOCUMENT
+================================================================================
+
+For questions or issues, refer to:
+- PhonePe API Documentation
+- Integration README files
+- Deployment guides
+- Test scripts
+
+Last Updated: 2024
+

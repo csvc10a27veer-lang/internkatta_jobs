@@ -1,0 +1,911 @@
+@import "tailwindcss";
+@import "./styles/theme.tokens.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Disable spin buttons on number inputs globally */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* InternKatta Theme Tokens */
+@theme {
+  /* Brand Colors */
+  --color-brand-blue: #2563EB;
+  --color-brand-blue-700: #1E4ED8;
+  --color-brand-purple: #6366F1;
+  --color-accent-orange: #FF8C42;
+
+  /* Surface & Text Colors */
+  --color-surface: #F8FAFC;
+  --color-muted: #6B7280;
+  --color-text: #0F172A;
+  --color-border: #E6E9EE;
+
+  /* Typography */
+  --font-headline: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Font Sizes (Desktop) */
+  --font-size-h1: 40px;
+  --font-size-h2: 28px;
+  --font-size-h3: 20px;
+  --font-size-body: 15px;
+  --font-size-small: 13px;
+
+  /* Spacing (Base unit: 8px) */
+  --spacing-base: 8px;
+  --spacing-section-desktop: 64px;
+  --spacing-section-tablet: 40px;
+  --spacing-section-mobile: 24px;
+
+  /* Container */
+  --container-max-width: 1100px;
+
+  /* Border Radius */
+  --radius-card: 8px;
+  --radius-hero-cta: 12px;
+  --radius-button: 10px;
+
+  /* Shadows */
+  --shadow-card: 0 6px 20px rgba(2, 6, 23, 0.06);
+}
+
+@layer components {
+  .form-input {
+    @apply px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sky-500 focus:border-sky-500;
+  }
+
+  .form-input-sm {
+    @apply px-3 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-sky-500 focus:border-sky-500 text-sm;
+  }
+}
+
+/* In your src/index.css file */
+
+@layer utilities {
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  /* Custom utility classes for design system */
+  .text-brand-blue {
+    color: var(--color-brand-blue);
+  }
+
+  .bg-brand-blue {
+    background-color: var(--color-brand-blue);
+  }
+
+  .text-brand-blue-700 {
+    color: var(--color-brand-blue-700);
+  }
+
+  .bg-brand-blue-700 {
+    background-color: var(--color-brand-blue-700);
+  }
+
+  .text-brand-purple {
+    color: var(--color-brand-purple);
+  }
+
+  .bg-brand-purple {
+    background-color: var(--color-brand-purple);
+  }
+
+  .text-accent-orange {
+    color: var(--color-accent-orange);
+  }
+
+  .bg-accent-orange {
+    background-color: var(--color-accent-orange);
+  }
+
+  .text-surface {
+    color: var(--color-surface);
+  }
+
+  .bg-surface {
+    background-color: var(--color-surface);
+  }
+
+  .text-muted {
+    color: var(--color-muted);
+  }
+
+  .bg-muted {
+    background-color: var(--color-muted);
+  }
+
+  .text-text {
+    color: var(--color-text);
+  }
+
+  .bg-text {
+    background-color: var(--color-text);
+  }
+
+  .text-border {
+    color: var(--color-border);
+  }
+
+  .border-border {
+    border-color: var(--color-border);
+  }
+
+  .font-headline {
+    font-family: var(--font-headline);
+  }
+
+  .font-body {
+    font-family: var(--font-body);
+  }
+
+  .text-h1 {
+    font-size: var(--font-size-h1);
+    line-height: 1.2;
+    font-weight: 700;
+  }
+
+  .text-h2 {
+    font-size: var(--font-size-h2);
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  .text-h3 {
+    font-size: var(--font-size-h3);
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  .text-body {
+    font-size: var(--font-size-body);
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  .text-small {
+    font-size: var(--font-size-small);
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  .py-section-desktop {
+    padding-top: var(--spacing-section-desktop);
+    padding-bottom: var(--spacing-section-desktop);
+  }
+
+  .py-section-tablet {
+    padding-top: var(--spacing-section-tablet);
+    padding-bottom: var(--spacing-section-tablet);
+  }
+
+  .py-section-mobile {
+    padding-top: var(--spacing-section-mobile);
+    padding-bottom: var(--spacing-section-mobile);
+  }
+
+  .max-w-container {
+    max-width: var(--container-max-width);
+  }
+
+  /* Responsive container padding */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  .rounded-card {
+    border-radius: var(--radius-card);
+  }
+
+  .rounded-hero-cta {
+    border-radius: var(--radius-hero-cta);
+  }
+
+  .rounded-button {
+    border-radius: var(--radius-button);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Hero specific utilities */
+  .py-hero-desktop {
+    padding-top: var(--hero-padding-desktop);
+    padding-bottom: var(--hero-padding-desktop);
+  }
+
+  .py-hero-tablet {
+    padding-top: var(--hero-padding-tablet);
+    padding-bottom: var(--hero-padding-tablet);
+  }
+
+  .py-hero-mobile {
+    padding-top: var(--hero-padding-mobile);
+    padding-bottom: var(--hero-padding-mobile);
+  }
+
+  .text-h1-desktop {
+    font-size: var(--font-size-h1-desktop);
+  }
+
+  .text-h1-tablet {
+    font-size: var(--font-size-h1-tablet);
+  }
+
+  .text-h1-mobile {
+    font-size: var(--font-size-h1-mobile);
+  }
+
+  .text-body-desktop {
+    font-size: var(--font-size-body-desktop);
+  }
+
+  .text-body-tablet {
+    font-size: var(--font-size-body-tablet);
+  }
+
+  .text-body-mobile {
+    font-size: var(--font-size-body-mobile);
+  }
+
+  /* Mosaic wrapper utilities */
+  .mosaic-wrapper {
+    overflow: hidden;
+  }
+
+  /* Responsive tile size variables */
+  @media (min-width: 1024px) {
+    :root {
+      --tile-size: 140px;
+    }
+  }
+
+  @media (min-width: 640px) and (max-width: 1023px) {
+    :root {
+      --tile-size: 120px;
+    }
+  }
+
+  @media (max-width: 639px) {
+    :root {
+      --tile-size: 100px;
+    }
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+/* Mosaic Tile Animations */
+@keyframes mosaic-bob-1 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes mosaic-bob-2 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(12px);
+  }
+}
+
+@keyframes mosaic-bob-3 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes mosaic-bob-4 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes mosaic-scale-1 {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.98);
+  }
+}
+
+@keyframes mosaic-scale-2 {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes mosaic-parallax-1 {
+
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes mosaic-parallax-2 {
+
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+
+  50% {
+    transform: translateX(-6px);
+  }
+}
+
+@keyframes mosaic-rotate-1 {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+@keyframes mosaic-rotate-2 {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(-2deg);
+  }
+}
+
+/* Apply animations to tiles */
+.mosaic-tile-1 {
+  animation: mosaic-bob-1 8s cubic-bezier(0.22, 0.9, 0.36, 1) infinite;
+  will-change: transform;
+}
+
+.mosaic-tile-2 {
+  animation: mosaic-scale-1 10s cubic-bezier(0.22, 0.9, 0.36, 1) infinite 1s;
+  will-change: transform;
+}
+
+.mosaic-tile-3 {
+  animation: mosaic-bob-2 12s cubic-bezier(0.22, 0.9, 0.36, 1) infinite 2s;
+  will-change: transform;
+}
+
+.mosaic-tile-4 {
+  animation: mosaic-parallax-1 9s cubic-bezier(0.22, 0.9, 0.36, 1) infinite 0.5s;
+  will-change: transform;
+}
+
+.mosaic-tile-5 {
+  animation: mosaic-rotate-1 14s cubic-bezier(0.22, 0.9, 0.36, 1) infinite 1.5s;
+  will-change: transform;
+}
+
+.mosaic-tile-6 {
+  animation: mosaic-bob-3 7s cubic-bezier(0.22, 0.9, 0.36, 1) infinite;
+  will-change: transform;
+}
+
+.mosaic-tile-7 {
+  animation: mosaic-scale-2 11s cubic-bezier(0.22, 0.9, 0.36, 1) infinite 2s;
+  will-change: transform;
+}
+
+.mosaic-tile-8 {
+  animation: mosaic-bob-4 13s cubic-bezier(0.22, 0.9, 0.36, 1) infinite 1s;
+  will-change: transform;
+}
+
+.mosaic-tile-9 {
+  animation: mosaic-parallax-2 10s cubic-bezier(0.22, 0.9, 0.36, 1) infinite 1s;
+  will-change: transform;
+}
+
+.mosaic-tile-10 {
+  animation: mosaic-rotate-2 15s cubic-bezier(0.22, 0.9, 0.36, 1) infinite 0.5s;
+  will-change: transform;
+}
+
+/* Disable animations for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  .mosaic-tile-1,
+  .mosaic-tile-2,
+  .mosaic-tile-3,
+  .mosaic-tile-4,
+  .mosaic-tile-5,
+  .mosaic-tile-6,
+  .mosaic-tile-7,
+  .mosaic-tile-8,
+  .mosaic-tile-9,
+  .mosaic-tile-10 {
+    animation: none !important;
+    will-change: auto;
+  }
+}
+
+/* Disable animations when data-motion="off" */
+.hero[data-motion="off"] .mosaic-tile-1,
+.hero[data-motion="off"] .mosaic-tile-2,
+.hero[data-motion="off"] .mosaic-tile-3,
+.hero[data-motion="off"] .mosaic-tile-4,
+.hero[data-motion="off"] .mosaic-tile-5,
+.hero[data-motion="off"] .mosaic-tile-6,
+.hero[data-motion="off"] .mosaic-tile-7,
+.hero[data-motion="off"] .mosaic-tile-8,
+.hero[data-motion="off"] .mosaic-tile-9,
+.hero[data-motion="off"] .mosaic-tile-10,
+.hero[data-motion="off"] .mosaic-tile-11,
+.hero[data-motion="off"] .mosaic-tile-12 {
+  animation: none !important;
+  transform: none !important;
+  will-change: auto;
+}
+
+.hero[data-motion="off"] .mosaic-wrapper-inner {
+  transform: none !important;
+}
+
+.hero[data-motion="off"] .mosaic-grid {
+  transform: none !important;
+}
+
+/* Mosaic Absolute Positioning Layout - Exact match to reference */
+.mosaic-wrapper {
+  position: relative;
+  width: 520px;
+  height: 620px;
+  flex-shrink: 0;
+  overflow: visible;
+  max-width: 100%;
+}
+
+.mosaic-wrapper * {
+  overflow: visible;
+}
+
+/* Responsive container improvements */
+@media (max-width: 1024px) {
+  .mosaic-wrapper {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .mosaic-wrapper {
+    max-width: 100%;
+  }
+}
+
+/* Tile Base Styles */
+.mosaic-tile {
+  position: absolute;
+  overflow: visible;
+  will-change: transform;
+}
+
+/* Shape Classes */
+.mosaic-tile.circle {
+  border-radius: 999px;
+}
+
+.mosaic-tile.rounded-square {
+  border-radius: 12px;
+}
+
+.mosaic-tile.square {
+  border-radius: 0;
+}
+
+.mosaic-tile.tall-pill {
+  border-radius: 12px 80px 80px 12px;
+}
+
+.mosaic-tile.half-round-right {
+  border-radius: 0 70px 70px 0;
+}
+
+.mosaic-tile.half-round-left {
+  border-radius: 70px 0 0 70px;
+}
+
+.mosaic-tile.half-pill-left {
+  border-radius: 70px 0 0 70px;
+}
+
+.mosaic-tile.big-pill {
+  border-radius: 140px;
+}
+
+.mosaic-tile.rounded-rect {
+  border-radius: 12px;
+}
+
+/* Stat Tile Styles */
+.mosaic-tile.stat {
+  color: #fff;
+  text-align: center;
+  font-family: var(--font-headline, Poppins);
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.mosaic-tile.stat .stat-value {
+  font-size: 26px;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.mosaic-tile.stat .stat-label {
+  font-size: 14px;
+  font-family: var(--font-body, Inter);
+  font-weight: 400;
+  line-height: 1.3;
+  padding: 0 8px;
+}
+
+/* Responsive scaling for stat text */
+@media (max-width: 1023px) {
+  .mosaic-tile.stat .stat-value {
+    font-size: 18px;
+  }
+
+  .mosaic-tile.stat .stat-label {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 639px) {
+  .mosaic-tile.stat .stat-value {
+    font-size: 16px;
+  }
+
+  .mosaic-tile.stat .stat-label {
+    font-size: 9px;
+  }
+}
+
+/* ========== ANIMATIONS: Energetic Mosaic Tile Animations ========== */
+
+:root {
+  --anim-ease: cubic-bezier(.16, .9, .24, 1);
+  --max-bob: 22px;
+  /* vertical movement amplitude */
+  --max-drift: 18px;
+  /* horizontal drift amplitude */
+  --max-rotate: 4deg;
+  /* rotation amplitude */
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  .mosaic-tile.is-active,
+  .mosaic-tile,
+  .mosaic-parallax {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Basic tile performance */
+.mosaic-tile {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform-origin: center center;
+  box-shadow: 0 14px 36px rgba(2, 6, 23, 0.07);
+  transition: transform 220ms var(--anim-ease);
+}
+
+/* Powerful keyframes — combine translateX, translateY, scale, rotate */
+@keyframes energetic-1 {
+  0% {
+    transform: translate3d(-6px, -12px, 0) scale(0.98) rotate(-2deg);
+  }
+
+  25% {
+    transform: translate3d(8px, 6px, 0) scale(1.03) rotate(1.2deg);
+  }
+
+  50% {
+    transform: translate3d(-12px, 12px, 0) scale(1.00) rotate(-0.8deg);
+  }
+
+  75% {
+    transform: translate3d(10px, -6px, 0) scale(1.04) rotate(2deg);
+  }
+
+  100% {
+    transform: translate3d(-6px, -12px, 0) scale(0.98) rotate(-2deg);
+  }
+}
+
+@keyframes energetic-2 {
+  0% {
+    transform: translate3d(0, -8px, 0) scale(1.00) rotate(-1deg);
+  }
+
+  50% {
+    transform: translate3d(0, 10px, 0) scale(1.06) rotate(1.5deg);
+  }
+
+  100% {
+    transform: translate3d(0, -8px, 0) scale(1.00) rotate(-1deg);
+  }
+}
+
+@keyframes drift-x {
+  0% {
+    transform: translate3d(-12px, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(12px, 0, 0) scale(1.01);
+  }
+
+  100% {
+    transform: translate3d(-12px, 0, 0) scale(1);
+  }
+}
+
+/* Stronger — assign to classes for easy mapping (slightly slower) */
+.mosaic-tile--energetic-1 {
+  animation: energetic-1 9.5s var(--anim-ease) infinite;
+}
+
+.mosaic-tile--energetic-2 {
+  animation: energetic-2 8.0s var(--anim-ease) infinite;
+}
+
+.mosaic-tile--drift {
+  animation: drift-x 11.5s var(--anim-ease) infinite;
+}
+
+/* Per-tile amplitude modifiers using CSS variables */
+.mosaic-tile {
+  --tile-bob: var(--max-bob);
+  --tile-drift: var(--max-drift);
+  --tile-rot: var(--max-rotate);
+}
+
+/* Hover-boost keyframe (stronger motion for hovered tile) */
+@keyframes hover-boost {
+  0% {
+    transform: translate3d(0, -8px, 0) scale(1) rotate(-1deg);
+  }
+
+  25% {
+    transform: translate3d(6px, 6px, 0) scale(1.06) rotate(2deg);
+  }
+
+  50% {
+    transform: translate3d(-8px, 10px, 0) scale(1.02) rotate(-1.2deg);
+  }
+
+  75% {
+    transform: translate3d(8px, -4px, 0) scale(1.07) rotate(1.6deg);
+  }
+
+  100% {
+    transform: translate3d(0, -8px, 0) scale(1) rotate(-1deg);
+  }
+}
+
+/* Lightweight 'active' visual style for hovered tile */
+.mosaic-tile.is-active {
+  /* larger, snappier animation while hovered */
+  animation-name: hover-boost !important;
+  animation-duration: 800ms;
+  animation-timing-function: cubic-bezier(.18, .9, .32, 1);
+  animation-iteration-count: infinite;
+  animation-direction: normal;
+  transform-origin: center center;
+  z-index: 10;
+  /* small shadow emphasis */
+  box-shadow: 0 22px 44px rgba(2, 6, 23, 0.12);
+  pointer-events: auto;
+  /* ensure it remains interactive */
+}
+
+/* Optional micro-scale for immediate poke effect */
+.mosaic-tile.is-active.immediate {
+  transform: scale(1.08);
+  transition: transform 140ms cubic-bezier(.2, .9, .3, 1);
+}
+
+/* -------- User Dashboard Brand Override (InternKatta Blue -> #0052A3) -------- */
+.user-dashboard-theme .text-blue-50,
+.user-dashboard-theme .text-blue-100,
+.user-dashboard-theme .text-blue-200,
+.user-dashboard-theme .text-blue-600,
+.user-dashboard-theme .text-blue-700,
+.user-dashboard-theme .text-blue-800,
+.user-dashboard-theme .text-blue-900 {
+  color: #0052A3 !important;
+}
+
+.user-dashboard-theme .bg-blue-50,
+.user-dashboard-theme .bg-blue-100,
+.user-dashboard-theme .bg-blue-200,
+.user-dashboard-theme .bg-blue-500,
+.user-dashboard-theme .bg-blue-600,
+.user-dashboard-theme .bg-blue-700 {
+  background-color: #0052A3 !important;
+}
+
+.user-dashboard-theme .border-blue-200,
+.user-dashboard-theme .border-blue-500,
+.user-dashboard-theme .border-blue-600 {
+  border-color: #0052A3 !important;
+}
+
+.user-dashboard-theme .from-blue-500,
+.user-dashboard-theme .from-blue-600 {
+  --tw-gradient-from: #0052A3 !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(0 82 163 / 0));
+}
+
+.user-dashboard-theme .to-blue-500,
+.user-dashboard-theme .to-blue-600 {
+  --tw-gradient-to: #004080 !important;
+}
+
+.user-dashboard-theme .hover\:text-blue-600:hover {
+  color: #0052A3 !important;
+}
+
+.user-dashboard-theme .hover\:bg-blue-50:hover,
+.user-dashboard-theme .hover\:bg-blue-700:hover {
+  background-color: #004080 !important;
+}
+
+.user-dashboard-theme .focus\:ring-blue-500:focus {
+  --tw-ring-color: #0052A3 !important;
+}
+
+/* When not active, make non-hover tiles more subtle (optional) */
+.mosaic-tile:not(.is-active) {
+  /* lower visual priority while another tile is active */
+  transition: opacity 220ms ease, transform 220ms ease;
+  opacity: 0.95;
+  transform: translateZ(0);
+}
+
+/* Stat tile highlight pulse (makes numbers pop) */
+.mosaic-stat .stat-value {
+  transition: transform 180ms var(--anim-ease), color 120ms;
+}
+
+.mosaic-stat.is-active .stat-value {
+  transform: scale(1.12);
+  color: #fff;
+}
+
+/* Parent parallax still small but combined with tile motion creates depth */
+.mosaic-parallax {
+  will-change: transform;
+  transition: transform 160ms linear;
+}
+
+/* Toggle class to remove all animations instantly (for testing/QA) */
+.no-anim .mosaic-tile,
+.no-anim .mosaic-parallax {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Make sure shapes remain crisp */
+.mosaic-tile svg {
+  shape-rendering: geometricPrecision;
+}
+
+/* Disable animations for tiles when reduced motion (handled above) */
+.hero[data-motion="off"] .mosaic-tile,
+.hero[data-motion="off"] .mosaic-parallax {
+  animation: none !important;
+  transform: none !important;
+  will-change: auto;
+  transition: none !important;
+}
+
+/* Reference overlay for QA */
+.reference-overlay {
+  position: absolute;
+  opacity: 0.25;
+  top: 0;
+  left: 520px;
+  width: 520px;
+  pointer-events: none;
+  z-index: -1;
+}
