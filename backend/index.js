@@ -100,7 +100,8 @@ app.set('userSockets', userSockets);
 // Only enable Express CORS for development/local access
 // Check if we're in production OR if trust proxy is set (indicating behind Nginx)
 const isProduction = process.env.NODE_ENV === 'production';
-const isBehindProxy = true; // Always assume behind Nginx in production
+const isBehindProxy = process.env.BEHIND_PROXY === 'true';
+
 
 // DISABLE CORS COMPLETELY - Nginx handles all CORS headers
 // This prevents duplicate headers when behind nginx proxy

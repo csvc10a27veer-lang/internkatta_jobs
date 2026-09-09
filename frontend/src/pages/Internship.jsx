@@ -432,7 +432,11 @@ const InternshipPage = () => {
         const difficulty = searchParams.get('difficulty');
         const language = searchParams.get('language');
         const duration = searchParams.get('duration');
+        const search = searchParams.get('search');
 
+        if (search) {
+            setSearchTerm(search);
+        }
         if (category) {
             setSelectedCategories([category]);
         }
@@ -722,48 +726,78 @@ const InternshipPage = () => {
                 url="https://internkatta.com/internship"
                 structuredData={internshipStructuredData}
             />
-            {/* Hero Section */}
-            <section className="bg-gradient-to-br from-[#0052A3] via-[#004085] to-[#003366] text-white shadow-xl">
-                <div className="container mx-auto px-4 py-6 md:py-8 text-center relative overflow-hidden">
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 opacity-10">
-                        <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full"></div>
-                        <div className="absolute top-20 right-20 w-24 h-24 bg-white rounded-full"></div>
-                        <div className="absolute bottom-20 left-1/4 w-16 h-16 bg-white rounded-full"></div>
-                    </div>
-                    
-                    <div className="relative z-10">
-                        <div className="flex items-center justify-center mb-2">
-                            <BriefcaseIcon className="h-8 w-8 md:h-10 md:w-10 text-blue-200 mr-2" />
-                            <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-tight">
-                                Internship Programs
-                            </h1>
-                        </div>
-                        <p className="text-sm md:text-base text-blue-100 max-w-3xl mx-auto leading-relaxed">
-                            Bridge the gap between learning and doing. Gain real-world experience and launch your career with our comprehensive internship programs.
-                        </p>
+            {/* Hero Section - Compact Height & Vibrant Visible Photo */}
+            <div className="pt-3 sm:pt-4 pb-1 px-3 sm:px-6 lg:px-8">
+                <div className="max-w-[1360px] mx-auto">
+                    <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] md:rounded-[28px] shadow-2xl min-h-[250px] sm:min-h-[270px] md:min-h-[300px] flex flex-col justify-center items-center px-5 py-5 sm:px-8 sm:py-6 md:px-10 md:py-7 border border-white/15 bg-[#060c18]">
                         
-                        {/* Search Bar */}
-                        <div className="max-w-2xl mx-auto mt-4">
-                            <div className="relative">
-                                <MagnifyingGlassIcon className="absolute h-5 w-5 md:h-6 md:w-6 text-gray-400 top-1/2 left-4 -translate-y-1/2 z-10" />
+                        {/* Background Image: Tech Innovation Lab */}
+                        <img 
+                            src="/internship-banner.jpg" 
+                            alt="Students collaborating on internship projects"
+                            className="absolute inset-0 w-full h-full object-cover object-center"
+                            loading="eager"
+                        />
+
+                        {/* Translucent Soft Overlay - Balanced for vivid photo visibility and sharp text readability */}
+                        <div className="absolute inset-0 bg-slate-950/20" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/50 pointer-events-none" />
+
+                        {/* Center Content: Title, Subtitle, Search */}
+                        <div className="relative z-10 text-center max-w-2xl mx-auto flex flex-col items-center w-full">
+                            
+                            {/* Badge: InternKatta Career Accelerators */}
+                            <div className="inline-flex items-center gap-2 px-3 py-0.5 sm:py-1 rounded-full bg-[#1e3a8a]/60 backdrop-blur-md border border-blue-400/40 text-[11px] sm:text-xs font-medium text-blue-200 shadow-sm mb-2 sm:mb-2.5">
+                                <img src="/logo2-transparent.png" className="w-3.5 h-3.5 object-contain" alt="" onError={(e) => { e.target.style.display = 'none'; }} />
+                                <span>InternKatta Career Accelerators</span>
+                            </div>
+
+                            {/* Main Heading */}
+                            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-black tracking-tight text-white mb-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] leading-tight">
+                                Internship{' '}
+                                <span className="bg-gradient-to-r from-[#60a5fa] via-[#93c5fd] to-[#fb923c] bg-clip-text text-transparent">
+                                    Programs
+                                </span>
+                            </h1>
+
+                            {/* Subtitle */}
+                            <p className="text-xs sm:text-sm text-white/95 font-normal max-w-xl mx-auto leading-normal mb-4 sm:mb-4.5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
+                                Bridge the gap between learning and doing. Gain real-world experience and launch your career with our comprehensive internship programs.
+                            </p>
+
+                            {/* Interactive Search Bar */}
+                            <div className="relative max-w-xl w-full mx-auto flex items-center bg-white rounded-full p-1 sm:p-1.5 shadow-2xl shadow-black/40 border border-white/20">
+                                <MagnifyingGlassIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 ml-3 mr-2 shrink-0" />
                                 <input 
                                     type="text" 
-                                    placeholder={typingText || "Web Development Internship..."} 
-                                    className="w-full pl-10 md:pl-12 pr-4 py-2 md:py-3 text-gray-700 bg-white rounded-full shadow-lg focus:ring-4 focus:ring-blue-300 focus:outline-none border-2 border-transparent placeholder-gray-400 text-sm md:text-base"
-                                    onChange={(e) => setSearchTerm(e.target.value)} 
                                     value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
                                     onFocus={() => setIsSearchFocused(true)}
                                     onBlur={() => setIsSearchFocused(false)}
+                                    placeholder={typingText || "Search internships by domain, tech stack, or college..."}
+                                    className="w-full bg-transparent text-gray-800 placeholder-gray-400 text-xs sm:text-sm focus:outline-none px-2"
                                 />
+                                <button 
+                                    type="button"
+                                    onClick={() => {
+                                        const mainContent = document.getElementById('internships-list');
+                                        if (mainContent) mainContent.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    className="px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-[#1877F2] hover:bg-[#1565C0] text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-md shrink-0 transition-all active:scale-[0.98]"
+                                >
+                                    <span>Explore</span>
+                                    <span>→</span>
+                                </button>
                             </div>
+
                         </div>
+
                     </div>
                 </div>
-            </section>
+            </div>
 
             {/* Main Content */}
-            <div className="container mx-auto px-4 py-8">
+            <div id="internships-list" className="container mx-auto px-4 py-8">
                 <div className="flex flex-col lg:flex-row gap-6">
                     {/* Left Sidebar - Filters */}
                     <div className="lg:block">
