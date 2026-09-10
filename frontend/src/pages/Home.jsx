@@ -365,23 +365,23 @@ const Home = () => {
       <section className="py-6 sm:py-8 md:py-10 bg-white overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-[1360px] mx-auto">
-            <div className="relative rounded-[24px] sm:rounded-[32px] md:rounded-[36px] bg-gradient-to-r from-[#2c136a] via-[#481fa7] to-[#2c136a] shadow-2xl shadow-purple-950/25 border border-purple-400/20 overflow-hidden px-4 sm:px-8 py-6 sm:py-8 md:py-9">
+            <div className="relative rounded-[24px] sm:rounded-[32px] md:rounded-[36px] bg-gradient-to-r from-[#0B2559] via-[#1D4ED8] to-[#091E47] shadow-2xl shadow-blue-950/30 border border-blue-400/30 overflow-hidden px-4 sm:px-8 py-6 sm:py-8 md:py-9">
               
               {/* Subtle Concentric Radar Rings in Background */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-25">
-                <div className="w-[480px] h-[480px] rounded-full border border-purple-300/40" />
-                <div className="absolute w-[720px] h-[720px] rounded-full border border-purple-300/30" />
-                <div className="absolute w-[980px] h-[980px] rounded-full border border-purple-300/20" />
+                <div className="w-[480px] h-[480px] rounded-full border border-blue-300/40" />
+                <div className="absolute w-[720px] h-[720px] rounded-full border border-blue-300/30" />
+                <div className="absolute w-[980px] h-[980px] rounded-full border border-blue-300/20" />
               </div>
 
               {/* Ambient Glows */}
               <div 
                 className="absolute -top-20 left-1/4 w-80 h-80 rounded-full pointer-events-none opacity-40 blur-3xl"
-                style={{ background: 'radial-gradient(circle, rgba(168, 85, 247, 0.6) 0%, transparent 70%)' }}
+                style={{ background: 'radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, transparent 70%)' }}
               />
               <div 
                 className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full pointer-events-none opacity-40 blur-3xl"
-                style={{ background: 'radial-gradient(circle, rgba(147, 51, 234, 0.6) 0%, transparent 70%)' }}
+                style={{ background: 'radial-gradient(circle, rgba(37, 99, 235, 0.6) 0%, transparent 70%)' }}
               />
 
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6">
@@ -442,7 +442,7 @@ const Home = () => {
                     ].map((feature, idx) => (
                       <span
                         key={idx}
-                        className="bg-white/95 hover:bg-white text-[#1E1B4B] font-bold text-xs sm:text-[13px] px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-2xl shadow-md shadow-purple-950/20 border border-white/60 transition-transform duration-200 hover:-translate-y-0.5 select-none"
+                        className="bg-white/95 hover:bg-white text-[#0B2559] font-bold text-xs sm:text-[13px] px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-2xl shadow-md shadow-blue-950/20 border border-white/60 transition-transform duration-200 hover:-translate-y-0.5 select-none"
                       >
                         {feature}
                       </span>
@@ -450,7 +450,7 @@ const Home = () => {
                   </div>
 
                   {/* Subtext: All included with InternKatta */}
-                  <p className="text-purple-200/90 font-medium text-xs sm:text-sm mb-3.5 sm:mb-4">
+                  <p className="text-blue-100/90 font-medium text-xs sm:text-sm mb-3.5 sm:mb-4">
                     All included with <span className="font-extrabold text-white">InternKatta</span>
                   </p>
 
@@ -459,7 +459,6 @@ const Home = () => {
                     to="/courses"
                     className="inline-flex items-center gap-2 bg-[#FFB800] hover:bg-[#F59E0B] active:scale-95 text-[#1E1B4B] font-black text-xs sm:text-sm md:text-base px-6 sm:px-7 py-2 sm:py-2.5 rounded-full shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all duration-200 group cursor-pointer"
                   >
-                    <span className="text-base select-none">🚀</span>
                     <span>Explore Courses</span>
                     <span className="group-hover:translate-x-1 transition-transform duration-200 text-sm font-bold">→</span>
                   </Link>
