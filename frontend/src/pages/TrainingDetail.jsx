@@ -27,6 +27,7 @@ import TrainingRegistrationForm from '../components/TrainingRegistrationForm';
 const trainingPrograms = {
   'industrial': {
     id: 'industrial',
+    image: '/training-1.jpg',
     title: 'Industrial Training',
     description: 'A comprehensive program designed for engineering students to gain hands-on industrial experience.',
     duration: '4 / 6 Weeks',
@@ -52,6 +53,7 @@ const trainingPrograms = {
   },
   'msbte': {
     id: 'msbte',
+    image: '/training-2.jpg',
     title: 'MSBTE Sponsored Training',
     description: 'Official programs aligned with the MSBTE curriculum to fulfill academic requirements with practical skills.',
     duration: '4 Weeks',
@@ -77,6 +79,7 @@ const trainingPrograms = {
   },
   'workshops': {
     id: 'workshops',
+    image: '/training-3.jpg',
     title: 'Specialized Workshops',
     description: 'Intensive 1-3 day workshops focused on a single, cutting-edge technology or tool.',
     duration: '1 to 3 Days',
@@ -208,61 +211,93 @@ const TrainingDetail = () => {
                     </div>
 
                     {/* Hero Content */}
-                    <div className="container mx-auto px-6 py-12">
-                        <div className="max-w-4xl">
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-                                {training.title}
-                            </h1>
-                            <p className="text-xl text-blue-100 mb-8 max-w-3xl leading-relaxed">
-                                {training.description}
-                            </p>
-                            
-                            {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <button 
-                                    onClick={() => {
-                                        setShowRegistrationForm(true);
-                                    }}
-                                    className="px-8 py-4 bg-white text-blue-900 font-bold text-lg rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center"
-                                >
-                                    Register Now
-                                </button>
-                                <button 
-                                    onClick={async () => {
-                                        try {
-                                            if (navigator.clipboard && window.isSecureContext) {
-                                                await navigator.clipboard.writeText(window.location.href);
-                                            } else {
-                                                // Fallback for older browsers or non-HTTPS
-                                                const textArea = document.createElement('textarea');
-                                                textArea.value = window.location.href;
-                                                textArea.style.position = 'fixed';
-                                                textArea.style.left = '-999999px';
-                                                textArea.style.top = '-999999px';
-                                                document.body.appendChild(textArea);
-                                                textArea.focus();
-                                                textArea.select();
-                                                document.execCommand('copy');
-                                                textArea.remove();
+                    <div className="container mx-auto px-6 py-10 md:py-14">
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+                            {/* Left Column: Text & Actions */}
+                            <div className="flex-1 max-w-2xl text-left">
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-extrabold text-white mb-5 leading-tight tracking-tight">
+                                    {training.title}
+                                </h1>
+                                <p className="text-base sm:text-lg md:text-xl text-blue-100 mb-8 max-w-2xl leading-relaxed font-normal">
+                                    {training.description}
+                                </p>
+                                
+                                {/* Action Buttons */}
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <button 
+                                        onClick={() => {
+                                            setShowRegistrationForm(true);
+                                        }}
+                                        className="px-8 py-3.5 bg-white text-[#0658A8] font-bold text-base md:text-lg rounded-xl hover:bg-blue-50 active:scale-95 transition-all duration-200 shadow-lg shadow-blue-950/20 flex items-center justify-center cursor-pointer"
+                                    >
+                                        Register Now
+                                    </button>
+                                    <button 
+                                        onClick={async () => {
+                                            try {
+                                                if (navigator.clipboard && window.isSecureContext) {
+                                                    await navigator.clipboard.writeText(window.location.href);
+                                                } else {
+                                                    // Fallback for older browsers or non-HTTPS
+                                                    const textArea = document.createElement('textarea');
+                                                    textArea.value = window.location.href;
+                                                    textArea.style.position = 'fixed';
+                                                    textArea.style.left = '-999999px';
+                                                    textArea.style.top = '-999999px';
+                                                    document.body.appendChild(textArea);
+                                                    textArea.focus();
+                                                    textArea.select();
+                                                    document.execCommand('copy');
+                                                    textArea.remove();
+                                                }
+                                                
+                                                // Show "Copied!" state
+                                                setIsCopied(true);
+                                                setTimeout(() => {
+                                                    setIsCopied(false);
+                                                }, 2000);
+                                            } catch (err) {
+                                                console.error('Failed to copy: ', err);
                                             }
-                                            
-                                            // Show "Copied!" state
-                                            setIsCopied(true);
-                                            setTimeout(() => {
-                                                setIsCopied(false);
-                                            }, 2000);
-                                        } catch (err) {
-                                            console.error('Failed to copy: ', err);
-                                        }
-                                    }}
-                                    className={`px-8 py-4 border-2 font-bold text-lg rounded-lg transition-colors flex items-center justify-center ${
-                                        isCopied 
-                                            ? 'bg-green-100 border-green-200 text-green-800' 
-                                            : 'bg-transparent border-white text-white hover:bg-white hover:text-blue-900'
-                                    }`}
+                                        }}
+                                        className={`px-7 py-3.5 border-2 font-bold text-base md:text-lg rounded-xl transition-colors flex items-center justify-center cursor-pointer ${
+                                            isCopied 
+                                                ? 'bg-green-100 border-green-200 text-green-800' 
+                                                : 'bg-transparent border-white text-white hover:bg-white hover:text-[#0658A8]'
+                                        }`}
+                                    >
+                                        {isCopied ? 'Copied!' : 'Copy shareable link'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Hero Image */}
+                            <div className="w-full lg:w-[440px] xl:w-[480px] flex-shrink-0 flex items-center justify-center">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.96 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.45, ease: "easeOut" }}
+                                    className="relative w-full rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl shadow-blue-950/40 border-2 border-white/20 group"
                                 >
-                                    {isCopied ? 'Copied!' : 'Copy shareable link'}
-                                </button>
+                                    <div className="relative aspect-[16/10] w-full bg-slate-900 overflow-hidden">
+                                        <img 
+                                            src={training.image || (training.id === 'msbte' ? '/training-2.jpg' : training.id === 'workshops' ? '/training-3.jpg' : '/training-1.jpg')} 
+                                            alt={training.title}
+                                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                                        
+                                        {/* Overlay pill chips */}
+                                        <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
+                                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#0658A8]/90 text-white shadow-sm border border-white/20 backdrop-blur-sm">
+                                                {training.category}
+                                            </span>
+                                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-black/60 text-white/95 border border-white/15 backdrop-blur-sm">
+                                                {training.duration}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </motion.div>
                             </div>
                         </div>
                     </div>
