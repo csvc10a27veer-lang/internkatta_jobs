@@ -27,7 +27,7 @@ import TrainingRegistrationForm from '../components/TrainingRegistrationForm';
 const trainingPrograms = {
   'industrial': {
     id: 'industrial',
-    image: '/training-1.jpg',
+    stickerImage: '/mascot-laptop.png',
     title: 'Industrial Training',
     description: 'A comprehensive program designed for engineering students to gain hands-on industrial experience.',
     duration: '4 / 6 Weeks',
@@ -53,7 +53,7 @@ const trainingPrograms = {
   },
   'msbte': {
     id: 'msbte',
-    image: '/training-2.jpg',
+    stickerImage: '/mascot-laptop.png',
     title: 'MSBTE Sponsored Training',
     description: 'Official programs aligned with the MSBTE curriculum to fulfill academic requirements with practical skills.',
     duration: '4 Weeks',
@@ -79,7 +79,7 @@ const trainingPrograms = {
   },
   'workshops': {
     id: 'workshops',
-    image: '/training-3.jpg',
+    stickerImage: '/mascot-laptop.png',
     title: 'Specialized Workshops',
     description: 'Intensive 1-3 day workshops focused on a single, cutting-edge technology or tool.',
     duration: '1 to 3 Days',
@@ -271,32 +271,36 @@ const TrainingDetail = () => {
                                 </div>
                             </div>
 
-                            {/* Right Column: Hero Image */}
-                            <div className="w-full lg:w-[440px] xl:w-[480px] flex-shrink-0 flex items-center justify-center">
+                            {/* Right Column: Floating Sticker (No Background, Matches Blue Theme) */}
+                            <div className="w-full lg:w-[420px] xl:w-[460px] flex-shrink-0 flex items-center justify-center relative py-4">
+                                {/* Subtle Ambient Radial Glow that blends with the blue background */}
+                                <div 
+                                    className="absolute w-80 h-80 rounded-full pointer-events-none opacity-40 blur-3xl"
+                                    style={{ background: 'radial-gradient(circle, rgba(147, 197, 253, 0.45) 0%, transparent 70%)' }}
+                                />
+
+                                {/* Floating Sticker Mascot */}
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.96 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.45, ease: "easeOut" }}
-                                    className="relative w-full rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl shadow-blue-950/40 border-2 border-white/20 group"
+                                    initial={{ y: 0 }}
+                                    animate={{ y: [-6, 6, -6], rotate: [-1, 1, -1] }}
+                                    transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
+                                    className="relative z-10 flex flex-col items-center justify-center"
                                 >
-                                    <div className="relative aspect-[16/10] w-full bg-slate-900 overflow-hidden">
-                                        <img 
-                                            src={training.image || (training.id === 'msbte' ? '/training-2.jpg' : training.id === 'workshops' ? '/training-3.jpg' : '/training-1.jpg')} 
-                                            alt={training.title}
-                                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-                                        
-                                        {/* Overlay pill chips */}
-                                        <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
-                                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#0658A8]/90 text-white shadow-sm border border-white/20 backdrop-blur-sm">
-                                                {training.category}
-                                            </span>
-                                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-black/60 text-white/95 border border-white/15 backdrop-blur-sm">
-                                                {training.duration}
-                                            </span>
-                                        </div>
-                                    </div>
+                                    <img 
+                                        src={training.stickerImage || '/mascot-laptop.png'} 
+                                        alt={training.title}
+                                        className="w-[260px] sm:w-[310px] lg:w-[350px] xl:w-[380px] h-auto max-h-[300px] sm:max-h-[350px] lg:max-h-[380px] object-contain select-none pointer-events-none filter drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] drop-shadow-[0_0_10px_rgba(255,255,255,0.35)] drop-shadow-[0_20px_35px_rgba(0,18,50,0.45)]"
+                                    />
+
+                                    {/* Floating Sticker Pill */}
+                                    <motion.div
+                                        animate={{ y: [3, -3, 3] }}
+                                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut", delay: 0.3 }}
+                                        className="mt-[-12px] sm:mt-[-16px] z-20 bg-white/95 backdrop-blur-md text-[#0658A8] font-black text-xs sm:text-sm px-4 py-1.5 rounded-full shadow-lg shadow-blue-950/30 border border-white/80 flex items-center gap-2 select-none"
+                                    >
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span>{training.id === 'msbte' ? 'MSBTE Aligned & Certified' : 'Industry Mentor Led'}</span>
+                                    </motion.div>
                                 </motion.div>
                             </div>
                         </div>

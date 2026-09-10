@@ -702,45 +702,62 @@ languageParamMatch && durationParamMatch;
                 url="https://internkatta.com/courses"
                 structuredData={coursesStructuredData}
             />
-            {/* Hero Section */}
-            <section className="bg-gradient-to-br from-[#0052A3] via-[#004085] to-[#003366] text-white shadow-xl">
-                <div className="container mx-auto px-4 py-6 md:py-8 text-center relative overflow-hidden">
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 opacity-10">
-                        <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full"></div>
-                        <div className="absolute top-20 right-20 w-24 h-24 bg-white rounded-full"></div>
-                        <div className="absolute bottom-20 left-1/4 w-16 h-16 bg-white rounded-full"></div>
-                    </div>
-                    
-                    <div className="relative z-10">
-                        <div className="flex items-center justify-center mb-2">
-                            <AcademicCapIcon className="h-8 w-8 md:h-10 md:w-10 text-blue-200 mr-2" />
-                            <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-tight">
-                                Courses
-                            </h1>
-                        </div>
-                        <p className="text-sm md:text-base text-blue-100 max-w-3xl mx-auto leading-relaxed">
-                            Here you'll find all our courses. Each course will teach you about specific technologies and skills in a structured, time-boxed way, usually around 1-2 hours.
-                        </p>
+            {/* Hero Section - Image Background with Overlapping Text */}
+            <div className="pt-3 sm:pt-4 pb-1 px-3 sm:px-6 lg:px-8">
+                <div className="max-w-[1360px] mx-auto">
+                    <div className="relative overflow-hidden rounded-[20px] sm:rounded-[26px] md:rounded-[28px] shadow-2xl min-h-[250px] sm:min-h-[270px] md:min-h-[300px] flex flex-col justify-center items-center px-5 py-6 sm:px-8 sm:py-8 md:px-10 md:py-9 border border-white/15 bg-[#060c18]">
                         
-                        {/* Search Bar */}
-                        <div className="max-w-2xl mx-auto mt-4">
-                            <div className="relative">
-                                <MagnifyingGlassIcon className="absolute h-5 w-5 md:h-6 md:w-6 text-gray-400 top-1/2 left-4 -translate-y-1/2 z-10" />
-                                <input 
-                                    type="text" 
-                                    placeholder={typingText || "AI Course..."} 
-                                    className="w-full pl-10 md:pl-12 pr-4 py-2 md:py-3 text-gray-700 bg-white rounded-full shadow-lg focus:ring-4 focus:ring-blue-300 focus:outline-none border-2 border-transparent placeholder-gray-400 text-sm md:text-base"
-                                    onChange={(e) => setSearchTerm(e.target.value)} 
-                                    value={searchTerm}
-                                    onFocus={() => setIsSearchFocused(true)}
-                                    onBlur={() => setIsSearchFocused(false)}
-                                />
+                        {/* Background Image: Collaborative Learning & Online Courses */}
+                        <img 
+                            src="/courses-banner.jpg" 
+                            alt="Students learning online courses collaboratively"
+                            className="absolute inset-0 w-full h-full object-cover object-center"
+                            loading="eager"
+                        />
+
+                        {/* Dark Soft Overlay - Balanced for vivid photo visibility and sharp text readability */}
+                        <div className="absolute inset-0 bg-slate-950/40" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-slate-950/35 to-black/75 pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/40 via-transparent to-blue-950/40 pointer-events-none" />
+
+                        {/* Center Overlapping Content */}
+                        <div className="relative z-10 text-center max-w-3xl mx-auto flex flex-col items-center w-full">
+                            
+                            {/* Badge */}
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1e3a8a]/70 backdrop-blur-md border border-blue-400/40 text-xs font-medium text-blue-200 shadow-md mb-2 sm:mb-2.5">
+                                <AcademicCapIcon className="w-3.5 h-3.5 text-blue-300" />
+                                <span>Industry-Recognized Certifications</span>
+                            </div>
+
+                            {/* Main Heading */}
+                            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-black tracking-tight text-white mb-2 drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] leading-tight flex items-center justify-center gap-2">
+                                <span>Courses</span>
+                            </h1>
+
+                            {/* Subtitle */}
+                            <p className="text-xs sm:text-sm md:text-base text-white/95 font-normal max-w-2xl mx-auto leading-relaxed mb-4 sm:mb-5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+                                Here you'll find all our courses. Each course will teach you about specific technologies and skills in a structured, time-boxed way, usually around 1-2 hours.
+                            </p>
+                            
+                            {/* Search Bar */}
+                            <div className="w-full max-w-xl mx-auto">
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="absolute h-5 w-5 text-gray-400 top-1/2 left-4 -translate-y-1/2 z-10" />
+                                    <input 
+                                        type="text" 
+                                        placeholder={typingText || "AI Course..."} 
+                                        className="w-full pl-11 pr-4 py-2.5 sm:py-3 text-gray-800 bg-white/95 backdrop-blur-sm rounded-full shadow-2xl focus:ring-4 focus:ring-blue-400/50 focus:outline-none border-2 border-white/80 placeholder-gray-400 text-sm sm:text-base transition-all duration-200"
+                                        onChange={(e) => setSearchTerm(e.target.value)} 
+                                        value={searchTerm}
+                                        onFocus={() => setIsSearchFocused(true)}
+                                        onBlur={() => setIsSearchFocused(false)}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
             {/* Main Content */}
             <div className="container mx-auto px-4 py-8">
