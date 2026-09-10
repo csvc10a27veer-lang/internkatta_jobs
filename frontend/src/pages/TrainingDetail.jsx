@@ -18,8 +18,7 @@ import {
     ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { 
-    TrophyIcon as TrophySolidIcon, 
-    SparklesIcon as SparklesSolidIcon 
+    TrophyIcon as TrophySolidIcon 
 } from '@heroicons/react/24/solid';
 import { motion } from 'framer-motion';
 import TrainingRegistrationForm from '../components/TrainingRegistrationForm';
@@ -504,13 +503,10 @@ const TrainingDetail = () => {
                                     className="absolute -bottom-14 -left-14 w-40 h-40 rounded-full pointer-events-none opacity-50 blur-xl"
                                     style={{ background: 'radial-gradient(circle, rgba(245, 158, 11, 0.5) 0%, transparent 70%)' }}
                                 />
-                                <SparklesSolidIcon className="absolute top-4 right-4 h-5 w-5 text-amber-500/70 animate-pulse pointer-events-none" />
-                                <SparklesSolidIcon className="absolute bottom-5 left-4 h-4 w-4 text-amber-500/50 pointer-events-none" />
 
                                 <div className="relative z-10 flex flex-col items-center">
                                     {/* Golden Credential Badge Tag */}
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-sm shadow-amber-500/30 mb-4 border border-yellow-200/70">
-                                        <SparklesSolidIcon className="h-3 w-3 text-amber-950" />
+                                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-sm shadow-amber-500/30 mb-4 border border-yellow-200/70">
                                         Official Credential
                                     </span>
 
