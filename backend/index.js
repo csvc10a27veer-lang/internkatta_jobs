@@ -74,22 +74,22 @@ const io = new Server(server, {
 const userSockets = new Map();
 
 io.on('connection', (socket) => {
-    socket.on('register', (userId) => {
-        if (userId) {
-            const userIdStr = userId.toString();
-            socket.join(userIdStr);
-            userSockets.set(userIdStr, socket.id);
-        }
-    });
+  socket.on('register', (userId) => {
+    if (userId) {
+      const userIdStr = userId.toString();
+      socket.join(userIdStr);
+      userSockets.set(userIdStr, socket.id);
+    }
+  });
 
-    socket.on('disconnect', () => {
-        for (const [userId, socketId] of userSockets.entries()) {
-            if (socketId === socket.id) {
-                userSockets.delete(userId);
-                break;
-            }
-        }
-    });
+  socket.on('disconnect', () => {
+    for (const [userId, socketId] of userSockets.entries()) {
+      if (socketId === socket.id) {
+        userSockets.delete(userId);
+        break;
+      }
+    }
+  });
 });
 
 app.set('io', io);
@@ -106,46 +106,46 @@ const isBehindProxy = true; // Always assume behind Nginx in production
 // This prevents duplicate headers when behind nginx proxy
 // Only enable for direct backend access (development without nginx)
 if (!isProduction && !isBehindProxy) {
-    // Development: Express handles CORS for direct backend access
-    app.use(cors({
-        origin: function (origin, callback) {
-            // Allow requests with no origin (like mobile apps or curl requests)
-            if (!origin) return callback(null, true);
-            
-            if (allowedOrigins.indexOf(origin) !== -1) {
-                callback(null, true);
-            } else {
-                // For local development, allow all origins
-                callback(null, true);
-            }
-        },
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-        allowedHeaders: [
-            "Content-Type", 
-            "Authorization", 
-            "admin-authorization", 
-            "user-authorization",
-            "X-Requested-With",
-            "Accept",
-            "Origin"
-        ],
-        credentials: true,
-        optionsSuccessStatus: 200,
-    }));
-    
-    // Handle CORS preflight requests for file uploads (development only)
-    app.options('*', cors());
+  // Development: Express handles CORS for direct backend access
+  app.use(cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        // For local development, allow all origins
+        callback(null, true);
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "admin-authorization",
+      "user-authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin"
+    ],
+    credentials: true,
+    optionsSuccessStatus: 200,
+  }));
+
+  // Handle CORS preflight requests for file uploads (development only)
+  app.options('*', cors());
 } else {
-    // Production or behind proxy: Disable Express CORS completely - Nginx handles it
-    console.log('CORS disabled in backend (handled by Nginx proxy)');
+  // Production or behind proxy: Disable Express CORS completely - Nginx handles it
+  console.log('CORS disabled in backend (handled by Nginx proxy)');
 }
 
 // Set server timeout for large file uploads
 app.use((req, res, next) => {
-    // Increase timeout to 60 minutes for very large uploads
-    req.setTimeout(3600000);
-    res.setTimeout(3600000);
-    next();
+  // Increase timeout to 60 minutes for very large uploads
+  req.setTimeout(3600000);
+  res.setTimeout(3600000);
+  next();
 });
 
 // Increase body parser limits for file uploads

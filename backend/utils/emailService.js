@@ -1,41 +1,68 @@
 const nodemailer = require('nodemailer');
 
-const emailConfig = {
-  host: process.env.SMTP_HOST || 'smtp.hostinger.com',
-  port: parseInt(process.env.SMTP_PORT) || 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER || process.env.EMAIL_USER || 'info@gradezy.in',
-    pass: process.env.SMTP_PASS || process.env.EMAIL_PASSWORD
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
+const getEmailConfig = () => {
+  const port = parseInt(process.env.SMTP_PORT) || 465;
+  return {
+    host: process.env.SMTP_HOST || 'smtp.hostinger.com',
+    port: port,
+    secure: port === 465,
+    auth: {
+      user: process.env.SMTP_USER || process.env.EMAIL_USER || 'info@gradezy.in',
+      pass: process.env.SMTP_PASS || process.env.EMAIL_PASSWORD
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  };
 };
 
 const isEmailConfigured = () => {
-  return !!process.env.EMAIL_PASSWORD;
+  return !!(process.env.SMTP_PASS || process.env.EMAIL_PASSWORD);
 };
 
 let transporter = null;
 
-if (isEmailConfigured()) {
-  transporter = nodemailer.createTransport(emailConfig);
+const getTransporter = () => {
+  if (!transporter && isEmailConfigured()) {
+    transporter = nodemailer.createTransport(getEmailConfig());
 
-  transporter.verify((error) => {
-    if (error) {
-      console.log('Email service error:', error.message);
-    } else {
-      console.log('Email service is ready to send messages');
+    transporter.verify((error) => {
+      if (error) {
+        console.error('[Email Service] Transporter verify error:', error.message);
+      } else {
+        console.log('[Email Service] Transporter verified and ready to send emails');
+      }
+    });
+  }
+  return transporter;
+};
+
+// Initialize transporter on load if configured
+getTransporter();
+
+// Ensure display names with periods/special chars are correctly quoted per RFC 5322
+const getFromAddress = () => {
+  const envFrom = process.env.SMTP_FROM;
+  if (!envFrom) {
+    return '"InternKatta" <info@gradezy.in>';
+  }
+  const match = envFrom.match(/^(.*?)\s*<([^>]+)>$/);
+  if (match) {
+    let name = match[1].trim();
+    const addr = match[2].trim();
+    if ((name.startsWith('"') && name.endsWith('"')) || (name.startsWith("'") && name.endsWith("'"))) {
+      name = name.slice(1, -1);
     }
-  });
-} else {
-  console.log('Email service disabled - EMAIL_PASSWORD not set');
-}
+    return `"${name}" <${addr}>`;
+  }
+  return envFrom;
+};
 
 const sendEmail = async ({ to, subject, html, text, attachments }) => {
   try {
-    if (!transporter) {
+    const currentTransporter = getTransporter();
+    if (!currentTransporter) {
+      console.error('[Email Service] Email service not configured. SMTP_PASS/EMAIL_PASSWORD missing.');
       return {
         success: false,
         message: 'Email service not configured'
@@ -43,7 +70,7 @@ const sendEmail = async ({ to, subject, html, text, attachments }) => {
     }
 
     const mailOptions = {
-      from: process.env.SMTP_FROM || '"Fourise Software Solutions Pvt.Ltd" <info@gradezy.in>',
+      from: getFromAddress(),
       replyTo: process.env.SMTP_REPLY_TO || 'info@gradezy.in',
       to,
       subject,
@@ -52,18 +79,32 @@ const sendEmail = async ({ to, subject, html, text, attachments }) => {
       attachments
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await currentTransporter.sendMail(mailOptions);
+
+    if (info && info.rejected && info.rejected.length > 0 && (!info.accepted || info.accepted.length === 0)) {
+      console.error('[Email Service] Recipient rejected by SMTP server:', info.rejected);
+      return {
+        success: false,
+        message: 'Email delivery was rejected by the server',
+        error: `Rejected by mail server: ${info.rejected.join(', ')}`
+      };
+    }
+
+    console.log(`[Email Service] Email sent successfully to ${to}, messageId: ${info.messageId}`);
 
     return {
       success: true,
-      messageId: info.messageId
+      messageId: info.messageId,
+      accepted: info.accepted,
+      response: info.response
     };
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('[Email Service] Error sending email:', error.message);
 
     return {
       success: false,
-      error: error.message
+      error: error.message,
+      message: error.message
     };
   }
 };

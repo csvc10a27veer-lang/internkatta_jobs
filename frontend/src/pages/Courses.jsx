@@ -247,7 +247,6 @@ const FilterSidebar = ({
 }) => {
     const [expandedSections, setExpandedSections] = useState({
         category: false,
-        difficulty: false,
         price: false
     });
 
@@ -258,8 +257,7 @@ const FilterSidebar = ({
         }));
     };
 
-    const difficultyLevels = ['All Levels', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
-    const priceRanges = ['Free', '₹0-₹1000', '₹1000-₹5000', '₹5000+'];
+    const priceRanges = ['₹99 - ₹499', '₹499 - ₹999', '₹999 - ₹1499', '₹1499 - ₹1999'];
 
     return (
         <>
@@ -317,32 +315,6 @@ const FilterSidebar = ({
                                              className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                          />
                                          <span className="ml-2 text-sm text-gray-700">{category?.name || 'Unknown Category'}</span>
-                                     </label>
-                                 ))}
-                             </div>
-                         )}
-                     </div>
-
-                                         {/* Difficulty Filter */}
-                     <div className="mb-4">
-                         <button
-                             onClick={() => toggleSection('difficulty')}
-                             className="flex items-center justify-between w-full mb-2 text-sm font-semibold text-gray-900"
-                         >
-                             Difficulty Level
-                             <ChevronRightIcon className={`h-4 w-4 transition-transform ${expandedSections.difficulty ? 'rotate-90' : ''}`} />
-                         </button>
-                         {expandedSections.difficulty && (
-                             <div className="space-y-1.5">
-                                 {difficultyLevels.map(level => (
-                                     <label key={level} className="flex items-center">
-                                         <input
-                                             type="checkbox"
-                                             checked={selectedDifficulty?.includes(level)}
-                                             onChange={() => onDifficultyToggle(level)}
-                                             className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                         />
-                                         <span className="ml-2 text-sm text-gray-700">{level}</span>
                                      </label>
                                  ))}
                              </div>
@@ -526,10 +498,10 @@ const CoursesPage = () => {
         
         return ranges.some(range => {
             const priceNum = parseFloat(price) || 0;
-            if (range === 'Free') return priceNum === 0;
-            if (range === '₹0-₹1000') return priceNum >= 0 && priceNum <= 1000;
-            if (range === '₹1000-₹5000') return priceNum > 1000 && priceNum <= 5000;
-            if (range === '₹5000+') return priceNum > 5000;
+            if (range === '₹99 - ₹499') return priceNum >= 99 && priceNum <= 499;
+            if (range === '₹499 - ₹999') return priceNum >= 499 && priceNum <= 999;
+            if (range === '₹999 - ₹1499') return priceNum >= 999 && priceNum <= 1499;
+            if (range === '₹1499 - ₹1999') return priceNum >= 1499 && priceNum <= 1999;
             return false;
         });
     };
@@ -610,6 +582,26 @@ languageParamMatch && durationParamMatch;
 
         return filtered;
     }, [allCourses, selectedCategories, selectedDifficulty, selectedPriceRanges, searchTerm, sortBy, searchParams]);
+
+    // Show only categories that have at least one course available
+    const availableCategories = useMemo(() => {
+        return categories.filter(category => {
+            const catName = (category?.name || '').trim().toLowerCase();
+            const catId = category?._id ? String(category._id) : '';
+            if (!catName && !catId) return false;
+            return allCourses.some(course => {
+                const courseCat = course.category;
+                if (!courseCat) return false;
+                if (typeof courseCat === 'object') {
+                    const cName = (courseCat.name || '').trim().toLowerCase();
+                    const cId = courseCat._id ? String(courseCat._id) : '';
+                    return (catName && cName === catName) || (catId && cId === catId);
+                }
+                const strCat = String(courseCat).trim().toLowerCase();
+                return (catName && strCat === catName) || (catId && String(courseCat) === catId);
+            });
+        });
+    }, [categories, allCourses]);
 
     const handleCategoryToggle = (categoryName) => {
         setSelectedCategories(prev => 
@@ -748,7 +740,7 @@ languageParamMatch && durationParamMatch;
                                  {/* Left Sidebar - Filters */}
              <div className="lg:block">
                                  <FilterSidebar 
-                            categories={categories}
+                            categories={availableCategories}
                             selectedCategories={selectedCategories}
                             selectedDifficulty={selectedDifficulty}
                             selectedPriceRanges={selectedPriceRanges}
