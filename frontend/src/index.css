@@ -32,6 +32,7 @@ input[type=number] {
   /* Typography */
   --font-headline: 'Poppins', sans-serif;
   --font-body: 'Inter', sans-serif;
+  --font-handwritten: 'Caveat', cursive, sans-serif;
 
   /* Font Sizes (Desktop) */
   --font-size-h1: 40px;
@@ -75,8 +76,8 @@ input[type=number] {
     animation-delay: 2s;
   }
 
-  .animation-delay-4000 {
-    animation-delay: 4s;
+  .font-handwritten {
+    font-family: 'Caveat', cursive, sans-serif;
   }
 
   /* Custom utility classes for design system */

@@ -17,12 +17,17 @@ import {
     HomeIcon,
     ChevronRightIcon
 } from '@heroicons/react/24/outline';
+import { 
+    TrophyIcon as TrophySolidIcon 
+} from '@heroicons/react/24/solid';
+import { motion } from 'framer-motion';
 import TrainingRegistrationForm from '../components/TrainingRegistrationForm';
 
 // Training data - in a real app, this would come from an API
 const trainingPrograms = {
   'industrial': {
     id: 'industrial',
+    stickerImage: '/mascot-laptop.png',
     title: 'Industrial Training',
     description: 'A comprehensive program designed for engineering students to gain hands-on industrial experience.',
     duration: '4 / 6 Weeks',
@@ -48,6 +53,7 @@ const trainingPrograms = {
   },
   'msbte': {
     id: 'msbte',
+    stickerImage: '/mascot-laptop.png',
     title: 'MSBTE Sponsored Training',
     description: 'Official programs aligned with the MSBTE curriculum to fulfill academic requirements with practical skills.',
     duration: '4 Weeks',
@@ -73,6 +79,7 @@ const trainingPrograms = {
   },
   'workshops': {
     id: 'workshops',
+    stickerImage: '/mascot-laptop.png',
     title: 'Specialized Workshops',
     description: 'Intensive 1-3 day workshops focused on a single, cutting-edge technology or tool.',
     duration: '1 to 3 Days',
@@ -204,61 +211,97 @@ const TrainingDetail = () => {
                     </div>
 
                     {/* Hero Content */}
-                    <div className="container mx-auto px-6 py-12">
-                        <div className="max-w-4xl">
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-                                {training.title}
-                            </h1>
-                            <p className="text-xl text-blue-100 mb-8 max-w-3xl leading-relaxed">
-                                {training.description}
-                            </p>
-                            
-                            {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <button 
-                                    onClick={() => {
-                                        setShowRegistrationForm(true);
-                                    }}
-                                    className="px-8 py-4 bg-white text-blue-900 font-bold text-lg rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center"
-                                >
-                                    Register Now
-                                </button>
-                                <button 
-                                    onClick={async () => {
-                                        try {
-                                            if (navigator.clipboard && window.isSecureContext) {
-                                                await navigator.clipboard.writeText(window.location.href);
-                                            } else {
-                                                // Fallback for older browsers or non-HTTPS
-                                                const textArea = document.createElement('textarea');
-                                                textArea.value = window.location.href;
-                                                textArea.style.position = 'fixed';
-                                                textArea.style.left = '-999999px';
-                                                textArea.style.top = '-999999px';
-                                                document.body.appendChild(textArea);
-                                                textArea.focus();
-                                                textArea.select();
-                                                document.execCommand('copy');
-                                                textArea.remove();
+                    <div className="container mx-auto px-6 py-10 md:py-14">
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+                            {/* Left Column: Text & Actions */}
+                            <div className="flex-1 max-w-2xl text-left">
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-extrabold text-white mb-5 leading-tight tracking-tight">
+                                    {training.title}
+                                </h1>
+                                <p className="text-base sm:text-lg md:text-xl text-blue-100 mb-8 max-w-2xl leading-relaxed font-normal">
+                                    {training.description}
+                                </p>
+                                
+                                {/* Action Buttons */}
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <button 
+                                        onClick={() => {
+                                            setShowRegistrationForm(true);
+                                        }}
+                                        className="px-8 py-3.5 bg-white text-[#0658A8] font-bold text-base md:text-lg rounded-xl hover:bg-blue-50 active:scale-95 transition-all duration-200 shadow-lg shadow-blue-950/20 flex items-center justify-center cursor-pointer"
+                                    >
+                                        Register Now
+                                    </button>
+                                    <button 
+                                        onClick={async () => {
+                                            try {
+                                                if (navigator.clipboard && window.isSecureContext) {
+                                                    await navigator.clipboard.writeText(window.location.href);
+                                                } else {
+                                                    // Fallback for older browsers or non-HTTPS
+                                                    const textArea = document.createElement('textarea');
+                                                    textArea.value = window.location.href;
+                                                    textArea.style.position = 'fixed';
+                                                    textArea.style.left = '-999999px';
+                                                    textArea.style.top = '-999999px';
+                                                    document.body.appendChild(textArea);
+                                                    textArea.focus();
+                                                    textArea.select();
+                                                    document.execCommand('copy');
+                                                    textArea.remove();
+                                                }
+                                                
+                                                // Show "Copied!" state
+                                                setIsCopied(true);
+                                                setTimeout(() => {
+                                                    setIsCopied(false);
+                                                }, 2000);
+                                            } catch (err) {
+                                                console.error('Failed to copy: ', err);
                                             }
-                                            
-                                            // Show "Copied!" state
-                                            setIsCopied(true);
-                                            setTimeout(() => {
-                                                setIsCopied(false);
-                                            }, 2000);
-                                        } catch (err) {
-                                            console.error('Failed to copy: ', err);
-                                        }
-                                    }}
-                                    className={`px-8 py-4 border-2 font-bold text-lg rounded-lg transition-colors flex items-center justify-center ${
-                                        isCopied 
-                                            ? 'bg-green-100 border-green-200 text-green-800' 
-                                            : 'bg-transparent border-white text-white hover:bg-white hover:text-blue-900'
-                                    }`}
+                                        }}
+                                        className={`px-7 py-3.5 border-2 font-bold text-base md:text-lg rounded-xl transition-colors flex items-center justify-center cursor-pointer ${
+                                            isCopied 
+                                                ? 'bg-green-100 border-green-200 text-green-800' 
+                                                : 'bg-transparent border-white text-white hover:bg-white hover:text-[#0658A8]'
+                                        }`}
+                                    >
+                                        {isCopied ? 'Copied!' : 'Copy shareable link'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Floating Sticker (No Background, Matches Blue Theme) */}
+                            <div className="w-full lg:w-[420px] xl:w-[460px] flex-shrink-0 flex items-center justify-center relative py-4">
+                                {/* Subtle Ambient Radial Glow that blends with the blue background */}
+                                <div 
+                                    className="absolute w-80 h-80 rounded-full pointer-events-none opacity-40 blur-3xl"
+                                    style={{ background: 'radial-gradient(circle, rgba(147, 197, 253, 0.45) 0%, transparent 70%)' }}
+                                />
+
+                                {/* Floating Sticker Mascot */}
+                                <motion.div
+                                    initial={{ y: 0 }}
+                                    animate={{ y: [-6, 6, -6], rotate: [-1, 1, -1] }}
+                                    transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
+                                    className="relative z-10 flex flex-col items-center justify-center"
                                 >
-                                    {isCopied ? 'Copied!' : 'Copy shareable link'}
-                                </button>
+                                    <img 
+                                        src={training.stickerImage || '/mascot-laptop.png'} 
+                                        alt={training.title}
+                                        className="w-[260px] sm:w-[310px] lg:w-[350px] xl:w-[380px] h-auto max-h-[300px] sm:max-h-[350px] lg:max-h-[380px] object-contain select-none pointer-events-none filter drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] drop-shadow-[0_0_10px_rgba(255,255,255,0.35)] drop-shadow-[0_20px_35px_rgba(0,18,50,0.45)]"
+                                    />
+
+                                    {/* Floating Sticker Pill */}
+                                    <motion.div
+                                        animate={{ y: [3, -3, 3] }}
+                                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut", delay: 0.3 }}
+                                        className="mt-[-12px] sm:mt-[-16px] z-20 bg-white/95 backdrop-blur-md text-[#0658A8] font-black text-xs sm:text-sm px-4 py-1.5 rounded-full shadow-lg shadow-blue-950/30 border border-white/80 flex items-center gap-2 select-none"
+                                    >
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span>{training.id === 'msbte' ? 'MSBTE Aligned & Certified' : 'Industry Mentor Led'}</span>
+                                    </motion.div>
+                                </motion.div>
                             </div>
                         </div>
                     </div>
@@ -483,16 +526,79 @@ const TrainingDetail = () => {
                                 </button>
                             </div>
 
-                            {/* Certificate Card */}
-                            <div className="bg-white border-2 border-gray-200 rounded-lg p-6 text-center">
-                                <TrophyIcon className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-                                <h4 className="font-semibold text-gray-900 mb-1">Certificate of Completion</h4>
-                                <p className="text-sm text-gray-600 mb-4">Training</p>
-                                <div className="flex items-center justify-center text-gray-500">
-                                    <LockClosedIcon className="h-4 w-4 mr-2" />
-                                    <span className="text-sm">Complete the training to unlock</span>
+                            {/* Golden Floating Certificate Card */}
+                            <motion.div 
+                                initial={{ y: 0 }}
+                                animate={{ y: [-5, 5, -5] }}
+                                transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
+                                className="relative rounded-3xl bg-gradient-to-b from-[#FFFDF5] via-[#FEF3C7] to-[#FDE68A] p-6 sm:p-7 text-center border-2 border-[#F59E0B]/50 shadow-[0_16px_40px_-10px_rgba(245,158,11,0.32)] hover:shadow-[0_20px_50px_-10px_rgba(245,158,11,0.45)] transition-shadow duration-300 overflow-hidden group"
+                            >
+                                {/* Background Ambient Rays and Golden Glows */}
+                                <div 
+                                    className="absolute -top-16 -right-16 w-44 h-44 rounded-full pointer-events-none opacity-60 blur-2xl"
+                                    style={{ background: 'radial-gradient(circle, rgba(251, 191, 36, 0.7) 0%, transparent 70%)' }}
+                                />
+                                <div 
+                                    className="absolute -bottom-14 -left-14 w-40 h-40 rounded-full pointer-events-none opacity-50 blur-xl"
+                                    style={{ background: 'radial-gradient(circle, rgba(245, 158, 11, 0.5) 0%, transparent 70%)' }}
+                                />
+
+                                <div className="relative z-10 flex flex-col items-center">
+                                    {/* Golden Credential Badge Tag */}
+                                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-sm shadow-amber-500/30 mb-4 border border-yellow-200/70">
+                                        Official Credential
+                                    </span>
+
+                                    {/* Floating Golden Trophy Pedestal */}
+                                    <div className="relative mb-3.5 flex items-center justify-center">
+                                        {/* Golden Pulsing Halo */}
+                                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-300 opacity-40 blur-md animate-pulse scale-110" />
+                                        
+                                        {/* Golden Trophy Pedestal with Bobbing Animation */}
+                                        <motion.div
+                                            animate={{ y: [-3, 3, -3], rotate: [-1.5, 1.5, -1.5] }}
+                                            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                                            className="relative z-10 w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-tr from-[#D97706] via-[#F59E0B] to-[#FDE047] p-4 shadow-lg shadow-amber-600/35 border-2 border-yellow-100 flex items-center justify-center"
+                                        >
+                                            <TrophySolidIcon className="h-11 w-11 sm:h-12 sm:w-12 text-[#451A03] drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]" />
+                                        </motion.div>
+                                    </div>
+
+                                    {/* Title */}
+                                    <h4 className="text-xl sm:text-[22px] font-black text-[#78350F] tracking-tight mb-1 leading-snug drop-shadow-sm">
+                                        Certificate of Completion
+                                    </h4>
+
+                                    {/* Subtitle */}
+                                    <p className="text-xs sm:text-[13px] font-bold text-[#B45309] uppercase tracking-wider mb-4">
+                                        {training?.title || 'Industrial Training'}
+                                    </p>
+
+                                    {/* Key Benefits / Highlights */}
+                                    <div className="w-full space-y-2 mb-4 text-left bg-white/65 backdrop-blur-sm rounded-xl p-3 border border-amber-200/80 shadow-sm">
+                                        <div className="flex items-center gap-2 text-xs font-semibold text-amber-950">
+                                            <CheckCircleIcon className="h-4 w-4 text-emerald-600 shrink-0" />
+                                            <span>Industry & Employer Recognized</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs font-semibold text-amber-950">
+                                            <CheckCircleIcon className="h-4 w-4 text-emerald-600 shrink-0" />
+                                            <span>Verifiable QR-Code Credential</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs font-semibold text-amber-950">
+                                            <CheckCircleIcon className="h-4 w-4 text-emerald-600 shrink-0" />
+                                            <span>Shareable on LinkedIn & Resumes</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Lock Footer Indicator */}
+                                    <div className="w-full flex items-center justify-center gap-2 text-amber-900 bg-amber-500/15 py-2.5 px-3 rounded-xl border border-amber-400/40">
+                                        <LockClosedIcon className="h-4 w-4 text-amber-800 shrink-0" />
+                                        <span className="text-xs sm:text-[13px] font-bold text-amber-950">
+                                            Complete the training to unlock
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         </div>
                     </div>
                 </div>
