@@ -532,10 +532,10 @@ const Home = () => {
 
 
       {/* Contact Admissions CTA Card Section */}
-      <section className="py-10 sm:py-14 md:py-16 bg-[#f8fafc]">
+      <section className="py-6 sm:py-8 md:py-10 bg-[#f8fafc]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-[1360px] mx-auto">
-            <div className="relative overflow-hidden rounded-[24px] sm:rounded-[32px] md:rounded-[36px] shadow-2xl min-h-[420px] sm:min-h-[460px] md:min-h-[490px] flex items-center justify-center border border-gray-200/40">
+          <div className="max-w-5xl mx-auto">
+            <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl min-h-[250px] sm:min-h-[280px] md:min-h-[300px] flex items-center justify-center border border-gray-200/40">
               
               {/* Background Campus Photo - Clean, Edge-to-Edge and High Clarity */}
               <img 
@@ -546,56 +546,56 @@ const Home = () => {
               />
 
               {/* Subtle translucent overlay for crisp text readability while keeping photo clear and vibrant */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/30 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/35 pointer-events-none" />
 
               {/* Centered Overlapping Content */}
-              <div className="relative z-10 px-6 py-12 sm:py-16 md:py-20 text-center max-w-2xl mx-auto flex flex-col items-center">
+              <div className="relative z-10 px-4 sm:px-6 py-6 sm:py-8 md:py-9 text-center max-w-xl mx-auto flex flex-col items-center">
                 
                 {/* Heading */}
-                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-black text-white tracking-tight leading-[1.15] mb-3 sm:mb-4 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
-                  Ready to Transform Your<br />Career?
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight mb-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                  Ready to Transform Your Career?
                 </h2>
 
                 {/* Subtitle */}
-                <p className="text-sm sm:text-base md:text-lg text-white/95 font-medium max-w-lg mx-auto leading-relaxed mb-6 sm:mb-8 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)]">
+                <p className="text-xs sm:text-sm md:text-base text-white/95 font-medium max-w-md mx-auto leading-relaxed mb-4 sm:mb-5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                   Our admissions team is ready to help you choose the perfect program for your goals.
                 </p>
 
                 {/* CTA Button */}
                 <Link 
                   to="/contact" 
-                  className="inline-flex items-center justify-center px-7 sm:px-9 py-3 sm:py-3.5 bg-[#0062cc] hover:bg-[#0051a8] active:scale-[0.98] text-white font-semibold text-sm sm:text-base rounded-xl shadow-lg shadow-blue-900/50 hover:shadow-blue-600/40 transition-all duration-200 mb-8 sm:mb-10"
+                  className="inline-flex items-center justify-center px-5 sm:px-7 py-2 sm:py-2.5 bg-[#0062cc] hover:bg-[#0051a8] active:scale-[0.98] text-white font-semibold text-xs sm:text-sm rounded-lg shadow-md shadow-blue-900/40 hover:shadow-blue-600/30 transition-all duration-200 mb-4 sm:mb-5"
                 >
                   Contact Admissions
                 </Link>
 
                 {/* Feature Checkmarks Row */}
-                <div className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-7 gap-y-2.5 text-xs sm:text-sm font-medium text-white/95 drop-shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded-full bg-[#0062cc] flex items-center justify-center text-white shrink-0 shadow-sm">
-                      <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-1.5 text-[11px] sm:text-xs font-medium text-white/95 drop-shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3.5 h-3.5 rounded-full bg-[#0062cc] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <svg className="w-2 h-2" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="2.5 6 4.8 8.5 9.5 3.5" />
                       </svg>
                     </span>
                     <span>Free 1-on-1 Consultation</span>
                   </div>
 
-                  <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-blue-400/80" />
+                  <span className="hidden sm:inline-block w-1 h-1 rounded-full bg-blue-400/80" />
 
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded-full bg-[#0062cc] flex items-center justify-center text-white shrink-0 shadow-sm">
-                      <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3.5 h-3.5 rounded-full bg-[#0062cc] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <svg className="w-2 h-2" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="2.5 6 4.8 8.5 9.5 3.5" />
                       </svg>
                     </span>
                     <span>Personalized Roadmap</span>
                   </div>
 
-                  <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-blue-400/80" />
+                  <span className="hidden sm:inline-block w-1 h-1 rounded-full bg-blue-400/80" />
 
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded-full bg-[#0062cc] flex items-center justify-center text-white shrink-0 shadow-sm">
-                      <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3.5 h-3.5 rounded-full bg-[#0062cc] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <svg className="w-2 h-2" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="2.5 6 4.8 8.5 9.5 3.5" />
                       </svg>
                     </span>
