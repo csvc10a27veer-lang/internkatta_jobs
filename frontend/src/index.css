@@ -33,6 +33,7 @@ input[type=number] {
   --font-headline: 'Poppins', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-handwritten: 'Caveat', cursive, sans-serif;
+  --font-serif-heading: 'Playfair Display', Georgia, serif;
 
   /* Font Sizes (Desktop) */
   --font-size-h1: 40px;
@@ -910,3 +911,11 @@ input[type=number] {
   pointer-events: none;
   z-index: -1;
 }
+
+.font-serif-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-handwritten {
+  font-family: 'Caveat', cursive, sans-serif;
+}

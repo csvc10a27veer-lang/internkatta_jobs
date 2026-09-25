@@ -13,6 +13,7 @@ import {
 import { motion, useInView, animate } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useNavigationWithLoading } from '../hooks/useNavigationWithLoading';
+import { useUserAuth } from '../context/UserAuthContext';
 import api from '../utils/api';
 
 // --- DATA ---
@@ -124,39 +125,92 @@ const AnimatedCounter = ({ to, suffix = '', decimals = 0 }) => {
 // --- COMPONENT ---
 const Training = () => {
   const { navigateWithLoading } = useNavigationWithLoading();
+  const { auth } = useUserAuth() || {};
 
-  const handleReferNow = () => {
-    const shareData = {
-      title: 'InternKatta - Industrial Training & Internships',
-      text: 'Check out InternKatta for verified internships, MSBTE industrial training, and live projects!',
-      url: window.location.origin,
-    };
-
-    if (navigator.share) {
-      navigator.share(shareData).catch(() => {});
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.origin);
-      toast.success('InternKatta referral link copied to clipboard!');
-    } else {
-      window.location.href = '/contact';
+  const copyAndOpenWhatsApp = (message) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(message);
     }
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    toast.success('🎁 Referral message copied! Opening WhatsApp...');
   };
 
-  const handleReferAndEarnPoints = () => {
-    const referralUrl = `${window.location.origin}?ref=points`;
+  const handleReferNow = () => {
+    const inviterName = auth?.user?.fullName;
+    const refCode = auth?.user?._id || 'referral';
+    const referralUrl = `${window.location.origin}?ref=${encodeURIComponent(refCode)}`;
+
+    const shareText = `🎓 *Join InternKatta — Practical Industrial Training & Internships!* 🚀
+
+Hey! 👋 ${inviterName ? `${inviterName} has invited you` : "I'm inviting you"} to explore *InternKatta* — India's trusted platform for students & graduates to gain real-world industrial skills.
+
+🌟 *Why you should join:*
+✅ *Verified Internships* across Web Dev, AI/ML, Cloud & Core Tech
+✅ *MSBTE Aligned* Industrial Training & Hands-on Workshops
+✅ *Real-world Live Projects* with 1-on-1 industry mentorship
+📜 *Govt. & ISO Certified* credentials for your resume
+🎯 *Direct Placement Assistance* & career guidance
+
+🚀 _Build in-demand skills and accelerate your career!_
+
+👉 *Explore opportunities & get started here:*`;
+
+    const fullMessage = `${shareText}\n${referralUrl}`;
+
     const shareData = {
-      title: 'InternKatta - Refer & Earn Points',
-      text: 'Join InternKatta with my referral link and unlock verified internships plus bonus reward points!',
+      title: 'InternKatta - Industrial Training & Internships',
+      text: shareText,
       url: referralUrl,
     };
 
     if (navigator.share) {
-      navigator.share(shareData).catch(() => {});
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(referralUrl);
-      toast.success('🎁 Referral link copied! Share to earn bonus reward points upon friend signup.');
+      navigator.share(shareData).catch((err) => {
+        if (err.name !== 'AbortError') {
+          copyAndOpenWhatsApp(fullMessage);
+        }
+      });
     } else {
-      window.location.href = '/contact';
+      copyAndOpenWhatsApp(fullMessage);
+    }
+  };
+
+  const handleReferAndEarnPoints = () => {
+    const inviterName = auth?.user?.fullName;
+    const refCode = auth?.user?._id || 'points';
+    const referralUrl = `${window.location.origin}?ref=${encodeURIComponent(refCode)}`;
+
+    const shareText = `🎓 *Boost Your Career with InternKatta!* 🚀
+
+Hey! 👋 ${inviterName ? `${inviterName} has invited you` : "I'm inviting you"} to join *InternKatta* — India's premier platform for students, diploma holders & fresh graduates.
+
+🌟 *What you'll unlock:*
+✅ *Verified Internships* (Web Dev, AI/ML, Full Stack, Cyber Security & more)
+✅ *MSBTE & Industry-Recognized* Training Programs
+✅ *Hands-on Live Projects* with expert mentorship
+✅ *Govt. & ISO Certified* Completion Certificates
+🪙 *Exclusive 500 Bonus Reward Points* instantly on signup!
+
+🚀 _Build practical skills & get industry-ready today!_
+
+👉 *Claim your spot & bonus points here:*`;
+
+    const fullMessage = `${shareText}\n${referralUrl}`;
+
+    const shareData = {
+      title: 'InternKatta - Refer & Earn Points',
+      text: shareText,
+      url: referralUrl,
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch((err) => {
+        if (err.name !== 'AbortError') {
+          copyAndOpenWhatsApp(fullMessage);
+        }
+      });
+    } else {
+      copyAndOpenWhatsApp(fullMessage);
     }
   };
   
