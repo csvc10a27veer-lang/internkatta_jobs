@@ -1,6 +1,8 @@
 // backend/index.js
 
 const express = require('express');
+// Forced restart 3
+require('./test_learner_progress_script.js');
 
 // Load production/local environment from .env
 require('dotenv').config({ path: '.env' });
@@ -21,6 +23,7 @@ const dashboardRoute = require('./routes/dashboardRoute');
 const trainingRoutes = require('./routes/trainingRoutes');
 const trainingProgramRoutes = require('./routes/trainingProgramRoutes');
 const paymentRoute = require('./routes/paymentRoute'); // Payment routes
+const jobRoute = require('./routes/jobRoute'); // Job Portal routes
 const contactRoute = require('./routes/contactRoute'); // Contact routes
 const couponRoute = require('./routes/couponRoute'); // Coupon routes
 const googleAuthRoute = require('./routes/googleAuthRoute'); // Google OAuth routes
@@ -39,7 +42,13 @@ const app = express();
 const server = http.createServer(app);
 
 // Connect to DB
-connectDB();
+connectDB().then(() => {
+    // Run test script after DB connection
+    setTimeout(() => {
+        console.log("Running test script...");
+        require('./test_learner_progress_script.js');
+    }, 2000);
+});
 
 // --- Middleware Section ---
 // CORS configuration
@@ -207,6 +216,9 @@ app.use('/api/notifications', notificationRoute);
 app.use('/api/v1/internship-category', internshipCategoryRoutes);
 app.use('/api/v1/internships', internshipRoutes);
 
+// Job routes
+app.use('/api/jobs', jobRoute);
+
 // Training routes
 app.use('/api/training', trainingRoutes);
 app.use('/api/training-programs', trainingProgramRoutes);
@@ -238,6 +250,56 @@ app.use('/api/admin', adminRoute);
 
 // Dashboard stats route
 app.use('/api/admin/dashboard', dashboardRoute);
+
+app.get('/api/debug-progress', async (req, res) => {
+    try {
+        const User = require('./models/userModel');
+        const Internship = require('./models/internshipModel');
+        
+        const userId = "694a6314decd34ffb04e95e1";
+        const internshipId = "692819b79f897aa84c08f651";
+
+        const user = await User.findById(userId).select('fullName email internshipProgress');
+        const internship = await Internship.findById(internshipId).select('title lectures');
+
+        const matchingProgresses = (user.internshipProgress || []).filter(p => p.internshipId && p.internshipId.toString() === internshipId);
+        
+        let result = {
+            userFound: !!user,
+            internshipFound: !!internship,
+            totalEntries: (user.internshipProgress || []).length,
+            matchingEntries: matchingProgresses.length,
+            matches: matchingProgresses.map(p => ({
+                id: p._id,
+                completedLectures: p.completedLectures?.length,
+                statuses: p.completedLectures?.map(l => l.status)
+            }))
+        };
+
+        // What does getInternshipLearningAnalytics see?
+        const users = await User.find({ _id: userId })
+            .populate('enrolledInternships', 'title lectures')
+            .populate('internshipProgress.internshipId', 'title lectures');
+        
+        if (users.length > 0) {
+            const progressByInternship = new Map(
+                (users[0].internshipProgress || []).map((progress) => [
+                    progress.internshipId?._id?.toString() || progress.internshipId?.toString(),
+                    progress
+                ])
+            );
+            const p = progressByInternship.get(internshipId);
+            result.analyticsMatch = {
+                completedLectures: p?.completedLectures?.length,
+                statuses: p?.completedLectures?.map(l => l.status)
+            };
+        }
+
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ error: e.message, stack: e.stack });
+    }
+});
 
 
 // --- Global Error Handler ---
