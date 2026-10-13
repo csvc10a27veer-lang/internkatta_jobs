@@ -138,7 +138,7 @@ function Login() {
                             {/* Brand Logo in Top-Left (Original InternKatta Logo) */}
                             <Link to="/" className="inline-flex items-center gap-2.5 sm:gap-3 mb-6 sm:mb-8 lg:mb-10 group">
                                 <img
-                                    src="/logo2.png"
+                                    src="/logo2-transparent.png"
                                     alt="InternKatta Logo"
                                     className="h-10 sm:h-12 md:h-14 w-auto object-contain transition-transform group-hover:scale-105"
                                 />

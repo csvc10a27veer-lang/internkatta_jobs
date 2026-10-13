@@ -21,7 +21,7 @@ const Logo = ({ className = "", onClick }) => {
     >
       {/* Logo Image */}
       <img
-        src="/logo2.png"
+        src="/logo2-transparent.png"
         alt="InternKatta Logo"
         className="h-10 sm:h-12 md:h-14 w-auto object-contain"
       />

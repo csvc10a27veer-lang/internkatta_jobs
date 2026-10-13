@@ -243,9 +243,9 @@ Hey! 👋 ${inviterName ? `${inviterName} has invited you` : "I'm inviting you"}
               {/* 3D Graduation Cap on Stacked Books */}
               <div className="w-40 sm:w-44 md:w-48 mx-auto lg:mx-0 mb-2">
                 <img
-                  src="/contact-grad-books.jpg"
+                  src="/contact-grad-books.png"
                   alt="Graduation Cap and Books"
-                  className="w-full h-auto object-contain filter drop-shadow-md mix-blend-multiply"
+                  className="w-full h-auto object-contain filter drop-shadow-md"
                 />
               </div>
 
@@ -313,9 +313,9 @@ Hey! 👋 ${inviterName ? `${inviterName} has invited you` : "I'm inviting you"}
                 {/* Small white square with books */}
                 <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-white p-1 border border-white/80 shadow-xs shrink-0 flex items-center justify-center">
                   <img
-                    src="/contact-grad-books.jpg"
+                    src="/contact-grad-books.png"
                     alt="Books"
-                    className="w-full h-full object-contain mix-blend-multiply"
+                    className="w-full h-full object-contain"
                   />
                 </div>
 
