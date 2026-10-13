@@ -47,7 +47,11 @@ const jobSchema = new mongoose.Schema({
   source: {
     type: String,
     default: 'Manual',
-    enum: ['Scraped', 'Manual', 'API Imported']
+    enum: ['Scraped', 'Manual', 'API Imported', 'LinkedIn', 'Naukri', 'Glassdoor', 'Internshala', 'Indeed', 'Automated']
+  },
+  platform: {
+    type: String,
+    default: ''
   },
   sourceUrl: {
     type: String,
@@ -61,6 +65,13 @@ const jobSchema = new mongoose.Schema({
   postedDate: {
     type: Date,
     default: Date.now
+  },
+  registrationDate: {
+    type: Date,
+    default: Date.now
+  },
+  endDate: {
+    type: Date
   }
 }, {
   timestamps: true
