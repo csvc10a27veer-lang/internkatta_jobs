@@ -16,6 +16,12 @@ function Login() {
     const [showPass, setShowPass] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     
+    // OTP verification states
+    const [otpSent, setOtpSent] = useState(false);
+    const [otp, setOtp] = useState('');
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [isResending, setIsResending] = useState(false);
+    
     // Get the 'auth' object from the user context
     const { auth, login } = useUserAuth(); 
     const navigate = useNavigate();
@@ -33,6 +39,17 @@ function Login() {
         }
     }, [auth, navigate, redirectTo]);
 
+    // Resend cooldown timer
+    useEffect(() => {
+        let timer;
+        if (resendCooldown > 0) {
+            timer = setInterval(() => {
+                setResendCooldown(prev => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [resendCooldown]);
+
     // Setup Google Sign-In button when component mounts
     useEffect(() => {
         setupGoogleSignInButton('google-signin-button');
@@ -43,15 +60,29 @@ function Login() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    // Step 1: Validate credentials and request OTP
+    const handleSendOTP = async (e) => {
+        if (e) e.preventDefault();
+        const trimmedEmail = formData.email ? formData.email.trim() : '';
+        if (!trimmedEmail || !formData.password) {
+            toast.error('Please enter both email and password');
+            return;
+        }
+
         setIsSubmitting(true);
         setErrorMessage('');
 
         try {
-            const { data } = await api.post('/api/users/login', formData);
+            const { data } = await api.post('/api/users/login', {
+                email: trimmedEmail,
+                password: formData.password
+            });
 
-            if (data && data.role === 'user') {
+            if (data?.otpRequired) {
+                setOtpSent(true);
+                setResendCooldown(60);
+                toast.success('OTP sent successfully to your Gmail address!');
+            } else if (data?.token && data?.role === 'user') {
                 login(data);
                 toast.success('Logged in successfully!');
                 if (redirectTo) {
@@ -72,7 +103,6 @@ function Login() {
                     allowEscapeKey: true
                 });
             }
-
         } catch (err) {
             const message = err.response?.data?.message || 'Login failed. Please check your email and password.';
             setErrorMessage(message);
@@ -90,6 +120,87 @@ function Login() {
         }
     };
 
+    // Step 2: Verify OTP and complete login
+    const handleVerifyOTP = async (e) => {
+        if (e) e.preventDefault();
+        const cleanOtp = otp ? otp.trim() : '';
+        if (!cleanOtp || cleanOtp.length < 6) {
+            toast.error('Please enter the 6-digit OTP sent to your email');
+            return;
+        }
+
+        const trimmedEmail = formData.email ? formData.email.trim() : '';
+        setIsSubmitting(true);
+        setErrorMessage('');
+
+        try {
+            const { data } = await api.post('/api/users/login', {
+                email: trimmedEmail,
+                password: formData.password,
+                otp: cleanOtp
+            });
+
+            if (data?.token && data?.role === 'user') {
+                login(data);
+                toast.success('Logged in successfully!');
+                if (redirectTo) {
+                    navigate(redirectTo, { replace: true });
+                } else {
+                    navigate('/user/mycourse');
+                }
+            } else {
+                const message = 'Access denied. Only users can log in here.';
+                setErrorMessage(message);
+                Swal.fire({
+                    title: 'Access Denied',
+                    text: message,
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#dc2626',
+                    allowOutsideClick: true,
+                    allowEscapeKey: true
+                });
+            }
+        } catch (err) {
+            const message = err.response?.data?.message || 'Invalid or expired OTP. Please try again.';
+            setErrorMessage(message);
+            Swal.fire({
+                title: 'Verification Failed',
+                text: message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#dc2626',
+                allowOutsideClick: true,
+                allowEscapeKey: true
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Resend OTP
+    const handleResendOTP = async () => {
+        if (resendCooldown > 0 || isResending) return;
+        const trimmedEmail = formData.email ? formData.email.trim() : '';
+        setIsResending(true);
+        try {
+            const { data } = await api.post('/api/users/login', {
+                email: trimmedEmail,
+                password: formData.password
+            });
+            if (data?.otpRequired) {
+                setResendCooldown(60);
+                toast.success('A fresh OTP has been sent to your Gmail!');
+            }
+        } catch (err) {
+            const message = err.response?.data?.message || 'Failed to resend OTP. Please try again.';
+            toast.error(message);
+        } finally {
+            setIsResending(false);
+        }
+    };
+
+    // If the user is logged in, we render nothing, because the useEffect is about to redirect them.
     if (auth && auth.token) {
         return null;
     }
@@ -231,7 +342,7 @@ function Login() {
 
                             {/* Subtitle */}
                             <p className="text-sm sm:text-base text-slate-500 mb-6 sm:mb-7">
-                                Enter your details to access your dashboard.
+                                {otpSent ? 'Enter the OTP sent to your Gmail.' : 'Enter your details to access your dashboard.'}
                             </p>
 
                             {/* Error Banner */}
@@ -242,7 +353,7 @@ function Login() {
                             )}
 
                             {/* Form */}
-                            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+                            <form onSubmit={otpSent ? handleVerifyOTP : handleSendOTP} className="space-y-4 sm:space-y-5">
                                 {/* Email */}
                                 <div>
                                     <label className="block text-sm sm:text-[15px] font-semibold text-slate-700 mb-1.5">
@@ -256,11 +367,12 @@ function Login() {
                                             value={formData.email}
                                             onChange={handleChange}
                                             required
+                                            disabled={otpSent}
                                             autoComplete="email"
                                             placeholder="you@example.com"
                                             className={`w-full pl-12 pr-4 py-3 sm:py-3.5 bg-slate-50 border rounded-2xl text-slate-800 placeholder-slate-400 text-sm sm:text-base focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
                                                 errorMessage ? 'border-red-300' : 'border-slate-200'
-                                            }`}
+                                            } ${otpSent ? 'cursor-not-allowed opacity-75' : ''}`}
                                         />
                                     </div>
                                 </div>
@@ -278,47 +390,97 @@ function Login() {
                                             value={formData.password}
                                             onChange={handleChange}
                                             required
+                                            disabled={otpSent}
                                             autoComplete="current-password"
                                             placeholder="Enter your password"
-                                            className="w-full pl-12 pr-16 py-3 sm:py-3.5 bg-slate-50 border rounded-2xl text-slate-800 placeholder-slate-400 text-sm sm:text-base focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none"
+                                            className={`w-full pl-12 pr-16 py-3 sm:py-3.5 bg-slate-50 border rounded-2xl text-slate-800 placeholder-slate-400 text-sm sm:text-base focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
+                                                errorMessage ? 'border-red-300' : 'border-slate-200'
+                                            } ${otpSent ? 'cursor-not-allowed opacity-75' : ''}`}
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPass(!showPass)}
-                                            className="absolute right-4 text-xs sm:text-sm font-bold text-[#0066FF] hover:text-[#0052CC] cursor-pointer"
-                                        >
-                                            {showPass ? 'Hide' : 'Show'}
-                                        </button>
+                                        {!otpSent && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPass(!showPass)}
+                                                className="absolute right-4 text-xs sm:text-sm font-bold text-[#0066FF] hover:text-[#0052CC] cursor-pointer"
+                                            >
+                                                {showPass ? 'Hide' : 'Show'}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Forgot Password / Create Account */}
-                                <div className="flex items-center justify-between text-xs sm:text-sm pt-1">
-                                    <Link to="/forgot-password" className="font-semibold text-[#0066FF] hover:underline">
-                                        Forgot Password?
-                                    </Link>
-                                    <Link to="/register" state={{ redirectTo }} className="font-bold text-[#0066FF] hover:underline">
-                                        Create Account
-                                    </Link>
-                                </div>
+                                {/* Forgot Password / Create Account (when OTP not sent) */}
+                                {!otpSent && (
+                                    <div className="flex items-center justify-between text-xs sm:text-sm pt-1">
+                                        <Link to="/forgot-password" className="font-semibold text-[#0066FF] hover:underline">
+                                            Forgot Password?
+                                        </Link>
+                                        <Link to="/register" state={{ redirectTo }} className="font-bold text-[#0066FF] hover:underline">
+                                            Create Account
+                                        </Link>
+                                    </div>
+                                )}
 
-                                {/* Submit Button */}
-                                <div className="pt-2">
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="w-full py-3.5 sm:py-4 px-6 rounded-2xl font-black text-white bg-[#0066FF] hover:bg-[#0052CC] active:scale-[0.99] transition-all shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2.5 text-base sm:text-lg cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
-                                    >
-                                        {isSubmitting ? (
-                                            <span>Logging In...</span>
-                                        ) : (
-                                            <>
-                                                <ArrowRight className="w-5 h-5" />
-                                                <span>Login</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                                {/* Submit Button / OTP Section */}
+                                {!otpSent ? (
+                                    <div className="pt-2">
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="w-full py-3.5 sm:py-4 px-6 rounded-2xl font-black text-white bg-[#0066FF] hover:bg-[#0052CC] active:scale-[0.99] transition-all shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2.5 text-base sm:text-lg cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                                        >
+                                            {isSubmitting ? (
+                                                <span>Sending OTP to Gmail...</span>
+                                            ) : (
+                                                <>
+                                                    <ArrowRight className="w-5 h-5" />
+                                                    <span>Login</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4 rounded-2xl bg-blue-50/50 p-4 sm:p-5 border border-blue-100">
+                                        <div>
+                                            <label className="mb-2 block text-xs sm:text-sm font-semibold text-slate-700">
+                                                Enter 6-digit OTP sent to <span className="font-bold text-[#0066FF]">{formData.email}</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-xl font-black tracking-[0.3em] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100"
+                                                placeholder="XXXXXX"
+                                                value={otp}
+                                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                                                maxLength="6"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting || otp.length < 6}
+                                            className="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 active:scale-[0.99] transition-all shadow-lg shadow-green-600/30 flex items-center justify-center gap-2 text-base cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                                        >
+                                            {isSubmitting ? 'Verifying OTP...' : 'Verify OTP & Login'}
+                                        </button>
+                                        <div className="flex items-center justify-between text-xs sm:text-sm pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={handleResendOTP}
+                                                disabled={resendCooldown > 0 || isResending}
+                                                className="font-semibold text-[#0066FF] hover:underline disabled:cursor-not-allowed disabled:text-slate-400"
+                                            >
+                                                {resendCooldown > 0 ? `Resend OTP in ${resendCooldown}s` : (isResending ? 'Sending...' : 'Resend OTP')}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setOtpSent(false); setOtp(''); setErrorMessage(''); }}
+                                                className="text-slate-500 hover:underline"
+                                            >
+                                                Change Email / Password
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </form>
 
                             {/* Or Divider */}

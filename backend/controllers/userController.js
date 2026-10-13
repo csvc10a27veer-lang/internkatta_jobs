@@ -61,6 +61,11 @@ const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
+// Generate 6-digit OTP Helper
+const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
+};
+
 const idsMatch = (left, right) => left?.toString() === right?.toString();
 
 const getInternshipProgressForUser = (user, internshipId) => (
@@ -107,36 +112,132 @@ const getLectureAccessInfo = (internship, progress, lectureId) => {
 };
 
 
-// --- THIS IS THE ROBUST AND CORRECTED FUNCTION ---
-// @desc    Authenticate a user & get token
+// @desc    Authenticate a user & get token with Gmail OTP verification
 // @route   POST /api/users/login
 // @access  Public
 const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, otp, verificationToken } = req.body;
         if (!email || !password) {
             return res.status(400).json({ message: 'Please provide email and password' });
         }
-        const user = await User.findOne({ email });
+
+        const cleanEmail = (email || '').trim();
+        const escapedEmail = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const user = await User.findOne({ 
+            email: { $regex: new RegExp(`^\\s*${escapedEmail}\\s*$`, 'i') } 
+        });
+
         if (!user) {
             console.log(`Login attempt failed: User with email ${email} not found.`);
             return res.status(401).json({ message: 'Invalid credentials' });
         }
+
+        if (!user.password) {
+            console.log(`Login attempt failed: User with email ${email} has no password set (possibly Google login).`);
+            return res.status(401).json({ message: 'Invalid credentials. If you registered with Google, please use Google Sign-In.' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
-        if (isMatch) {
-            console.log(`Login successful for user: ${email}`);
-            res.status(200).json({
-                _id: user._id,
-                fullName: user.fullName,
-                email: user.email,
-                role: user.role,
-                token: generateToken(user._id),
-                // Add other necessary fields here
-            });
-        } else {
+        if (!isMatch) {
             console.log(`Login attempt failed: Invalid password for user ${email}.`);
             return res.status(401).json({ message: 'Invalid credentials' });
         }
+
+        if (user.role !== 'user') {
+            return res.status(403).json({ message: 'Access denied. Only users can log in here.' });
+        }
+
+        if (user.status === 'Suspended') {
+            return res.status(403).json({ message: 'Your account has been suspended. Please contact support.' });
+        }
+
+        const userEmail = user.email.toLowerCase().trim();
+        const escapedUserEmail = userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const otpEmailFilter = { email: { $regex: new RegExp(`^\\s*${escapedUserEmail}\\s*$`, 'i') } };
+
+        // Step 1: If neither OTP nor verificationToken is provided, dispatch OTP to user's registered Gmail
+        if (!otp && !verificationToken) {
+            const otpCode = generateOTP();
+            await OTP.deleteMany(otpEmailFilter);
+            await OTP.create({ email: userEmail, otp: otpCode });
+
+            const html = `
+              <div style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #1e293b;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <h1 style="color: #2563eb; margin: 0; font-size: 24px;">InternKatta</h1>
+                  <p style="color: #64748b; margin: 4px 0 0 0; font-size: 14px;">Login Verification</p>
+                </div>
+                <p style="font-size: 16px; line-height: 1.5; color: #334155;">Hello ${user.fullName || ''},</p>
+                <p style="font-size: 15px; line-height: 1.5; color: #334155;">Please use the following 6-digit One-Time Password (OTP) to securely sign in to your InternKatta account:</p>
+                <div style="margin: 28px 0; text-align: center;">
+                  <div style="display: inline-block; padding: 14px 32px; background-color: #eff6ff; border: 2px dashed #3b82f6; border-radius: 8px; font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1d4ed8;">
+                    ${otpCode}
+                  </div>
+                </div>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.5;">This code will expire in <strong>5 minutes</strong>. If you did not attempt to log in, please secure your account immediately.</p>
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+                <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">&copy; ${new Date().getFullYear()} InternKatta &bull; Fourise Software Solutions Pvt. Ltd.</p>
+              </div>
+            `;
+            const emailResult = await sendEmail({
+                to: user.email,
+                subject: `${otpCode} is your InternKatta login verification code`,
+                html: html,
+                text: `Your InternKatta login verification code is: ${otpCode}. It will expire in 5 minutes.`
+            });
+
+            if (!emailResult.success) {
+                console.error('Failed to send login OTP email:', emailResult.error || emailResult.message);
+                await OTP.deleteMany(otpEmailFilter);
+                return res.status(500).json({ 
+                    message: 'Failed to send OTP to your email. Please try again.',
+                    error: emailResult.error || emailResult.message 
+                });
+            }
+
+            console.log(`[Login OTP] OTP sent successfully to ${user.email}`);
+            return res.status(200).json({
+                otpRequired: true,
+                email: user.email,
+                message: 'OTP has been sent to your registered Gmail address.'
+            });
+        }
+
+        // Step 2: Verification via verificationToken or direct OTP
+        if (verificationToken) {
+            try {
+                const decoded = jwt.verify(verificationToken, process.env.JWT_SECRET || 'fallback_secret');
+                if (decoded.verifiedEmail?.toLowerCase().trim() !== userEmail) {
+                    return res.status(400).json({ message: 'Invalid verification token' });
+                }
+            } catch (err) {
+                return res.status(400).json({ message: 'Invalid or expired verification token' });
+            }
+        } else if (otp) {
+            const cleanOtp = otp.toString().trim();
+            const record = await OTP.findOne({ 
+                ...otpEmailFilter, 
+                otp: cleanOtp 
+            });
+            if (!record) {
+                return res.status(400).json({ message: 'Invalid or expired OTP' });
+            }
+            // Invalidate OTP record so it cannot be reused
+            await OTP.deleteOne({ _id: record._id });
+        }
+
+        console.log(`Login successful for user: ${user.email}`);
+        return res.status(200).json({
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+            profilePicture: user.profilePicture,
+            enrolledCourses: user.enrolledCourses || [],
+            enrolledInternships: user.enrolledInternships || [],
+            token: generateToken(user._id),
+        });
     } catch (error) {
         console.error('SERVER ERROR during login:', error);
         res.status(500).json({ message: 'Server Error' });
@@ -307,11 +408,6 @@ const submitQuiz = async (req, res) => {
     }
 };
 
-// Generate OTP Helper
-const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
-};
-
 const sendOTP = async (req, res) => {
     try {
         const { phone } = req.body;
@@ -358,31 +454,63 @@ const verifyOTP = async (req, res) => {
 const sendEmailOTP = async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email) return res.status(400).json({ message: 'Email address is required' });
+        const cleanEmail = (email || '').trim();
+        if (!cleanEmail) return res.status(400).json({ message: 'Email address is required' });
 
-        const existingUser = await User.findOne({ email });
+        const escapedEmail = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const existingUser = await User.findOne({ 
+            email: { $regex: new RegExp(`^\\s*${escapedEmail}\\s*$`, 'i') } 
+        });
         if (existingUser) {
             return res.status(400).json({ message: 'This email is already registered.' });
         }
 
         // Generate OTP and save
         const otp = generateOTP();
-        await OTP.deleteMany({ email }); // Clear old OTPs for this email
-        await OTP.create({ email, otp });
+        const lowerEmail = cleanEmail.toLowerCase();
+        const escapedLower = lowerEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const otpFilter = { email: { $regex: new RegExp(`^\\s*${escapedLower}\\s*$`, 'i') } };
 
-        // Send Email
-        const html = `<h2>Email Verification</h2><p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 5 minutes.</p>`;
+        await OTP.deleteMany(otpFilter); // Clear old OTPs for this email
+        await OTP.create({ email: lowerEmail, otp });
+
+        // High-deliverability styled HTML template
+        const html = `
+          <div style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #1e293b;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h1 style="color: #2563eb; margin: 0; font-size: 24px;">InternKatta</h1>
+              <p style="color: #64748b; margin: 4px 0 0 0; font-size: 14px;">Email Verification</p>
+            </div>
+            <p style="font-size: 16px; line-height: 1.5; color: #334155;">Hello,</p>
+            <p style="font-size: 15px; line-height: 1.5; color: #334155;">Thank you for registering with InternKatta. Please use the following 6-digit verification code to complete your registration:</p>
+            <div style="margin: 28px 0; text-align: center;">
+              <div style="display: inline-block; padding: 14px 32px; background-color: #eff6ff; border: 2px dashed #3b82f6; border-radius: 8px; font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #1d4ed8;">
+                ${otp}
+              </div>
+            </div>
+            <p style="font-size: 14px; color: #64748b; line-height: 1.5;">This verification code is valid for <strong>5 minutes</strong>. If you did not request this code, you can safely ignore this email.</p>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+            <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">&copy; ${new Date().getFullYear()} InternKatta &bull; Fourise Software Solutions Pvt. Ltd.</p>
+          </div>
+        `;
+
         const result = await sendEmail({
-            to: email,
-            subject: 'Verify your email address - Internkatta',
+            to: cleanEmail,
+            subject: `${otp} is your InternKatta verification code`,
             html: html,
-            text: `Your verification code is: ${otp}`
+            text: `Your InternKatta verification code is: ${otp}. It will expire in 5 minutes.`
         });
 
         if (result.success) {
+            console.log(`[Registration OTP] Successfully sent OTP to ${cleanEmail}`);
             res.status(200).json({ message: 'OTP sent successfully to email' });
         } else {
-            res.status(500).json({ message: 'Failed to send OTP email', error: result.error });
+            console.error(`[Registration OTP] Failed to send OTP to ${cleanEmail}:`, result.error || result.message);
+            await OTP.deleteMany(otpFilter);
+            res.status(500).json({ 
+                message: 'Failed to send OTP to your email. Please try again.',
+                error: result.error || result.message 
+            });
         }
     } catch (error) {
         console.error('Error sending email OTP:', error);
@@ -393,15 +521,24 @@ const sendEmailOTP = async (req, res) => {
 const verifyEmailOTP = async (req, res) => {
     try {
         const { email, otp } = req.body;
-        if (!email || !otp) return res.status(400).json({ message: 'Email and OTP are required' });
+        const cleanEmail = (email || '').trim();
+        const cleanOtp = (otp || '').toString().trim();
+        if (!cleanEmail || !cleanOtp) return res.status(400).json({ message: 'Email and OTP are required' });
 
-        const record = await OTP.findOne({ email, otp });
+        const lowerEmail = cleanEmail.toLowerCase();
+        const escapedLower = lowerEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const otpFilter = { 
+            email: { $regex: new RegExp(`^\\s*${escapedLower}\\s*$`, 'i') },
+            otp: cleanOtp 
+        };
+
+        const record = await OTP.findOne(otpFilter);
         if (!record) {
             return res.status(400).json({ message: 'Invalid or expired OTP' });
         }
 
         // Generate a short-lived verification token (e.g. 15 mins)
-        const verificationToken = jwt.sign({ verifiedEmail: email }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '15m' });
+        const verificationToken = jwt.sign({ verifiedEmail: cleanEmail }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '15m' });
         
         // Remove OTP record so it can't be reused
         await OTP.deleteOne({ _id: record._id });

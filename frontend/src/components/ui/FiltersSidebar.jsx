@@ -14,6 +14,7 @@ const FiltersSidebar = ({
   selectedDurations = [],
   selectedPriceRanges = [],
   selectedDifficulties = [],
+  showDifficulty = false,
   onCategoryToggle,
   onDurationToggle,
   onPriceToggle,
@@ -37,8 +38,8 @@ const FiltersSidebar = ({
   };
 
   const difficultyLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
-  const durationRanges = ['3 Months', '6 Months', '9 Months', '12 Months'];
-  const priceRanges = ['₹0-₹2000', '₹2000-₹5000', '₹5000-₹10000', '₹10000+'];
+  const durationRanges = ['1 Month', '3 Months', '6 Months'];
+  const priceRanges = ['₹99 - ₹499', '₹499 - ₹999', '₹999 - ₹1499', '₹1499 - ₹1999'];
 
   const getSelectedCount = (section) => {
     switch (section) {
@@ -120,30 +121,32 @@ const FiltersSidebar = ({
           </div>
 
           {/* Difficulty Filter */}
-          <div className="mb-4">
-            <button
-              onClick={() => toggleSection('difficulty')}
-              className="flex items-center justify-between w-full mb-2 text-small font-semibold text-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 rounded"
-            >
-              <span>Difficulty Level {getSelectedCount('difficulty') > 0 && `(${getSelectedCount('difficulty')})`}</span>
-              <ChevronRightIcon className={`h-4 w-4 transition-transform ${expandedSections.difficulty ? 'rotate-90' : ''}`} />
-            </button>
-            {expandedSections.difficulty && (
-              <div className="space-y-1.5">
-                {difficultyLevels.map(level => (
-                  <label key={level} className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedDifficulties.includes(level)}
-                      onChange={() => onDifficultyToggle(level)}
-                      className="h-4 w-4 accent-[#FF7A1A] rounded border-gray-300 focus:ring-[#FF7A1A] cursor-pointer"
-                    />
-                    <span className="ml-2 text-small text-text">{level}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
+          {showDifficulty && (
+            <div className="mb-4">
+              <button
+                onClick={() => toggleSection('difficulty')}
+                className="flex items-center justify-between w-full mb-2 text-small font-semibold text-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 rounded"
+              >
+                <span>Difficulty Level {getSelectedCount('difficulty') > 0 && `(${getSelectedCount('difficulty')})`}</span>
+                <ChevronRightIcon className={`h-4 w-4 transition-transform ${expandedSections.difficulty ? 'rotate-90' : ''}`} />
+              </button>
+              {expandedSections.difficulty && (
+                <div className="space-y-1.5">
+                  {difficultyLevels.map(level => (
+                    <label key={level} className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedDifficulties.includes(level)}
+                        onChange={() => onDifficultyToggle(level)}
+                        className="h-4 w-4 accent-[#FF7A1A] rounded border-gray-300 focus:ring-[#FF7A1A] cursor-pointer"
+                      />
+                      <span className="ml-2 text-small text-text">{level}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Duration Filter */}
           <div className="mb-4">

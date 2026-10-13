@@ -133,6 +133,31 @@ const AdminLayout = () => {
           >
             <Briefcase size={20} /> Manage Internship
           </NavLink>
+
+          <NavLink
+            to="jobs"
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-4 py-2 rounded-md hover:bg-blue-100 ${
+                isActive ? 'bg-blue-200 font-semibold' : ''
+              }`
+            }
+          >
+            <Briefcase size={20} /> Jobs
+          </NavLink>
+
+          <NavLink
+            to="job-analysis"
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-4 py-2 rounded-md hover:bg-blue-100 ${
+                isActive ? 'bg-blue-200 font-semibold' : ''
+              }`
+            }
+          >
+            <BarChart size={20} /> Job Analysis
+          </NavLink>
+
+
+          
           <NavLink
             to="internship-submissions"
             className={({ isActive }) =>
@@ -232,6 +257,26 @@ const AdminLayout = () => {
             }
           >
             <BarChart size={20} /> Site Analytics
+          </NavLink>
+          <NavLink
+            to="course-analysis"
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-4 py-2 rounded-md hover:bg-blue-100 ${
+                isActive ? 'bg-blue-200 font-semibold' : ''
+              }`
+            }
+          >
+            <BarChart size={20} /> Course Analysis
+          </NavLink>
+          <NavLink
+            to="internship-analysis"
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-4 py-2 rounded-md hover:bg-blue-100 ${
+                isActive ? 'bg-blue-200 font-semibold' : ''
+              }`
+            }
+          >
+            <BarChart size={20} /> Internship Analysis
           </NavLink>
           <NavLink
             to="internship-learning-analytics"

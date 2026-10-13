@@ -198,8 +198,8 @@ const FilterSidebar = ({
     };
 
     const difficultyLevels = ['All Levels', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
-    const durationRanges = ['3 Months', '6 Months', '9 Months', '12 Months'];
-    const priceRanges = ['₹0-₹2000', '₹2000-₹5000', '₹5000-₹10000', '₹10000+'];
+    const durationRanges = ['1 Month', '3 Months', '6 Months'];
+    const priceRanges = ['₹99 - ₹499', '₹499 - ₹999', '₹999 - ₹1499', '₹1499 - ₹1999'];
 
     return (
         <>
@@ -263,36 +263,38 @@ const FilterSidebar = ({
                          )}
                      </div>
 
-                                         {/* Difficulty Filter */}
-                     <div className="mb-4">
-                         <button
-                             onClick={() => toggleSection('difficulty')}
-                             className="flex items-center justify-between w-full mb-2 text-sm font-semibold text-gray-900"
-                         >
-                             Difficulty Level
-                             <ChevronRightIcon className={`h-4 w-4 transition-transform ${expandedSections.difficulty ? 'rotate-90' : ''}`} />
-                         </button>
-                         {expandedSections.difficulty && (
-                             <div className="space-y-1.5">
-                                 {difficultyLevels.map(level => (
-                                     <label key={level} className="flex items-center">
-                                         <input
-                                             type="checkbox"
-                                             checked={selectedDifficulty.includes(level)}
-                                             onChange={() => {
-                                                        console.log("Checkbox clicked:", level);
-                                                        handleDifficultyToggle(level);
+                           {/* Difficulty Filter (Hidden) */}
+                     {false && (
+                         <div className="mb-4">
+                             <button
+                                 onClick={() => toggleSection('difficulty')}
+                                 className="flex items-center justify-between w-full mb-2 text-sm font-semibold text-gray-900"
+                             >
+                                 Difficulty Level
+                                 <ChevronRightIcon className={`h-4 w-4 transition-transform ${expandedSections.difficulty ? 'rotate-90' : ''}`} />
+                             </button>
+                             {expandedSections.difficulty && (
+                                 <div className="space-y-1.5">
+                                     {difficultyLevels.map(level => (
+                                         <label key={level} className="flex items-center">
+                                             <input
+                                                 type="checkbox"
+                                                 checked={selectedDifficulty.includes(level)}
+                                                 onChange={() => {
+                                                            console.log("Checkbox clicked:", level);
+                                                            handleDifficultyToggle(level);
 
-                                             }}
+                                                 }}
 
-                                             className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                         />
-                                         <span className="ml-2 text-sm text-gray-700">{level}</span>
-                                     </label>
-                                 ))}
-                             </div>
-                         )}
-                     </div>
+                                                 className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                             />
+                                             <span className="ml-2 text-sm text-gray-700">{level}</span>
+                                         </label>
+                                     ))}
+                                 </div>
+                             )}
+                         </div>
+                     )}
 
                      {/* Duration Filter */}
                      <div className="mb-4">
@@ -533,6 +535,10 @@ const InternshipPage = () => {
         
         return ranges.some(range => {
             const priceNum = parseFloat(price) || 0;
+            if (range === '₹99 - ₹499') return priceNum >= 99 && priceNum <= 499;
+            if (range === '₹499 - ₹999') return priceNum > 499 && priceNum <= 999;
+            if (range === '₹999 - ₹1499') return priceNum > 999 && priceNum <= 1499;
+            if (range === '₹1499 - ₹1999') return priceNum > 1499 && priceNum <= 1999;
             if (range === '₹0-₹2000') return priceNum >= 0 && priceNum <= 2000;
             if (range === '₹2000-₹5000') return priceNum > 2000 && priceNum <= 5000;
             if (range === '₹5000-₹10000') return priceNum > 5000 && priceNum <= 10000;
@@ -544,7 +550,12 @@ const InternshipPage = () => {
     // Helper function to check if duration matches selected ranges
     const isDurationInRange = (duration, ranges) => {
         if (ranges.length === 0) return true;
-        return ranges.some(range => duration && duration.toLowerCase().includes(range.toLowerCase().split(' ')[0]));
+        return ranges.some(range => {
+            if (!duration) return false;
+            const num = range.split(' ')[0];
+            const regex = new RegExp(`(^|\\D)${num}(\\D|$)`, 'i');
+            return regex.test(duration) || duration.toLowerCase().includes(range.toLowerCase());
+        });
     };
 
     const filteredAndSortedInternships = useMemo(() => {

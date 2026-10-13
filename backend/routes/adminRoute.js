@@ -19,8 +19,11 @@ const {
     uploadCategoryImage,
     deleteCategoryImage,
     createCategoryFolder,
-    getInternshipLearningAnalytics
+    getInternshipLearningAnalytics,
+    getLearnerProgressDetail
 } = require('../controllers/adminController');
+
+const { getCourseAnalysis, getInternshipAnalysis } = require('../controllers/adminAnalyticsController');
 
 router.post('/register', registerAdmin);
 router.post('/login', loginAdmin);
@@ -70,8 +73,13 @@ router.post('/category-folders/create', protectAdmin, isAdmin, createCategoryFol
 router.get('/users', protectAdmin, isAdmin, getAllUsers);
 router.get('/users/:id', protectAdmin, isAdmin, getUserDetails);
 router.get('/internship-learning-analytics', protectAdmin, isAdmin, getInternshipLearningAnalytics);
+router.get('/internship-learner-detail/:userId/:internshipId', protectAdmin, isAdmin, getLearnerProgressDetail);
 router.put('/users/:id/suspend', protectAdmin, isAdmin, suspendUser);
 router.put('/users/:id/activate', protectAdmin, isAdmin, activateUser);
 router.delete('/users/:id', protectAdmin, isAdmin, deleteUser);
+
+// Analytics routes
+router.get('/analytics/courses', protectAdmin, isAdmin, getCourseAnalysis);
+router.get('/analytics/internships', protectAdmin, isAdmin, getInternshipAnalysis);
 
 module.exports = router;

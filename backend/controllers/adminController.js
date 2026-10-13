@@ -4,6 +4,7 @@ const Admin = require('../models/adminModel');
 const User = require('../models/userModel');
 const Course = require('../models/courseModel');
 const Internship = require('../models/internshipModel');
+const Payment = require('../models/paymentModel');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
@@ -587,15 +588,41 @@ const createCategoryFolder = async (req, res) => {
 // Internship learning analytics for admin dashboard
 const getInternshipLearningAnalytics = async (req, res) => {
     try {
-        const internshipBuyerFilter = {
-            role: 'user',
-            'enrolledInternships.0': { $exists: true }
-        };
+        // Find all successful payments for internships
+        const completedPayments = await Payment.find({
+            status: { $in: ['COMPLETED', 'SUCCESS'] },
+            $or: [
+                { type: 'INTERNSHIP' },
+                { type: 'CART', 'cartItems.itemType': 'Internship' }
+            ]
+        });
+
+        const userInternshipsMap = new Map();
+        
+        completedPayments.forEach(payment => {
+            const userId = payment.userId.toString();
+            if (!userInternshipsMap.has(userId)) {
+                userInternshipsMap.set(userId, new Set());
+            }
+            const set = userInternshipsMap.get(userId);
+            
+            if (payment.type === 'INTERNSHIP' && payment.internshipId) {
+                set.add(payment.internshipId.toString());
+            } else if (payment.type === 'CART' && payment.cartItems) {
+                payment.cartItems.forEach(item => {
+                    if (item.itemType === 'Internship' && item.itemId) {
+                        set.add(item.itemId.toString());
+                    }
+                });
+            }
+        });
+
+        const userIdsWithPurchases = Array.from(userInternshipsMap.keys());
 
         const totalUsers = await User.countDocuments({ role: 'user' });
-        const usersWithInternshipPurchases = await User.countDocuments(internshipBuyerFilter);
+        const usersWithInternshipPurchases = userIdsWithPurchases.length;
 
-        const users = await User.find(internshipBuyerFilter)
+        const users = await User.find({ _id: { $in: userIdsWithPurchases } })
             .select('fullName email createdAt enrolledInternships internshipProgress')
             .populate('enrolledInternships', 'title lectures')
             .populate('internshipProgress.internshipId', 'title lectures');
@@ -604,6 +631,8 @@ const getInternshipLearningAnalytics = async (req, res) => {
 
         users.forEach((user) => {
             const enrolledInternships = user.enrolledInternships || [];
+            const purchasedSet = userInternshipsMap.get(user._id.toString()) || new Set();
+
             const progressByInternship = new Map(
                 (user.internshipProgress || []).map((progress) => [
                     progress.internshipId?._id?.toString() || progress.internshipId?.toString(),
@@ -612,6 +641,9 @@ const getInternshipLearningAnalytics = async (req, res) => {
             );
 
             enrolledInternships.forEach((internship) => {
+                if (!purchasedSet.has(internship._id.toString())) {
+                    return;
+                }
                 const internshipId = internship._id.toString();
                 const progress = progressByInternship.get(internshipId);
                 const totalLectures = internship.lectures?.length || 0;
@@ -705,6 +737,111 @@ const getInternshipLearningAnalytics = async (req, res) => {
     }
 };
 
+const getLearnerProgressDetail = async (req, res) => {
+    const fs = require('fs');
+    try {
+        fs.appendFileSync('debug.log', 'Entering getLearnerProgressDetail\n');
+        const { userId, internshipId } = req.params;
+        fs.appendFileSync('debug.log', `Params: ${userId}, ${internshipId}\n`);
+
+        const user = await User.findById(userId).select('fullName email internshipProgress');
+        fs.appendFileSync('debug.log', `User found: ${!!user}\n`);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const internship = await Internship.findById(internshipId).select('title lectures');
+        fs.appendFileSync('debug.log', `Internship found: ${!!internship}\n`);
+        if (!internship) {
+            return res.status(404).json({ success: false, message: 'Internship not found' });
+        }
+
+        // Handle potential duplicate entries: pick the last matching one, just like getInternshipLearningAnalytics Map behavior
+        const matchingProgresses = (user.internshipProgress || []).filter(p => p.internshipId && p.internshipId.toString() === internshipId);
+        const progress = matchingProgresses.length > 0 ? matchingProgresses[matchingProgresses.length - 1] : { completedLectures: [] };
+
+        // Handle orphaned progress data (e.g. if internship lectures were updated and _ids changed)
+        const unassignedProgress = [...(progress.completedLectures || [])];
+
+        const detailedLectures = (internship.lectures || []).map(lecture => {
+            // 1. Try to find an exact match by lectureId
+            let progressIdx = unassignedProgress.findIndex(l => l.lectureId && lecture._id && l.lectureId.toString() === lecture._id.toString());
+            let lectureProgress = null;
+            
+            if (progressIdx !== -1) {
+                lectureProgress = unassignedProgress.splice(progressIdx, 1)[0];
+            } else if (unassignedProgress.length > 0) {
+                // 2. Fallback: map remaining orphaned progress sequentially
+                lectureProgress = unassignedProgress.shift();
+            }
+
+            return {
+                lectureId: lecture._id,
+                title: lecture.lectureTitle || 'Untitled Lecture',
+                status: lectureProgress ? lectureProgress.status : 'Not Started',
+                submittedAt: lectureProgress ? lectureProgress.submittedAt : null,
+                completedAt: lectureProgress ? lectureProgress.completedAt : null,
+                files: lectureProgress ? (lectureProgress.submittedFiles && lectureProgress.submittedFiles.length > 0 ? lectureProgress.submittedFiles : (lectureProgress.submittedFile ? [lectureProgress.submittedFile] : [])) : []
+            };
+        });
+
+        const totalLectures = (internship.lectures || []).length;
+        const lectureStatuses = progress.completedLectures || [];
+        
+        // Calculate metrics exactly as in getInternshipLearningAnalytics for consistency
+        const completedCount = lectureStatuses.filter((lecture) => lecture.status === 'Completed').length;
+        const approvedCount = lectureStatuses.filter((lecture) => lecture.status === 'Approved').length;
+        const pendingCount = lectureStatuses.filter((lecture) => lecture.status === 'Pending').length;
+        const rejectedCount = lectureStatuses.filter((lecture) => lecture.status === 'Rejected').length;
+        const startedCount = lectureStatuses.filter((lecture) => lecture.status && lecture.status !== 'Not Started').length;
+        
+        const progressPercent = totalLectures > 0 ? Math.round((completedCount / totalLectures) * 100) : 0;
+
+        fs.appendFileSync('debug.log', `[DEBUG] internshipProgress total entries: ${(user.internshipProgress || []).length}\n`);
+        fs.appendFileSync('debug.log', `[DEBUG] matchingProgresses length: ${matchingProgresses.length}\n`);
+        if (matchingProgresses.length > 0) {
+            fs.appendFileSync('debug.log', `[DEBUG] First match completedLectures length: ${matchingProgresses[0].completedLectures?.length}\n`);
+            fs.appendFileSync('debug.log', `[DEBUG] Last match completedLectures length: ${progress.completedLectures?.length}\n`);
+        }
+        fs.appendFileSync('debug.log', `[DEBUG] lectureStatuses.length: ${lectureStatuses.length}\n`);
+        fs.appendFileSync('debug.log', `[DEBUG] completedCount: ${completedCount}\n`);
+        fs.appendFileSync('debug.log', `[DEBUG] progressPercent: ${progressPercent}\n`);
+        fs.appendFileSync('debug.log', `[DEBUG] param internshipId: ${internshipId}\n`);
+        if (user.internshipProgress && user.internshipProgress.length > 0) {
+            fs.appendFileSync('debug.log', `[DEBUG] First user progress internshipId: ${user.internshipProgress[0].internshipId}\n`);
+        }
+
+        fs.appendFileSync('debug.log', `Total lectures: ${totalLectures}\n`);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                user: {
+                    id: user._id,
+                    name: user.fullName,
+                    email: user.email
+                },
+                internship: {
+                    id: internship._id,
+                    title: internship.title,
+                    totalLectures
+                },
+                progress: {
+                    percent: progressPercent,
+                    completedCount,
+                    approvedCount
+                },
+                lectures: detailedLectures
+            }
+        });
+        fs.appendFileSync('debug.log', `Sent 200 OK\n`);
+    } catch (error) {
+        fs.appendFileSync('debug.log', `Error: ${error.stack}\n`);
+        console.error("Error in getLearnerProgressDetail:", error);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+
 module.exports = { 
     registerAdmin, 
     loginAdmin, 
@@ -718,5 +855,6 @@ module.exports = {
     uploadCategoryImage,
     deleteCategoryImage,
     createCategoryFolder,
-    getInternshipLearningAnalytics
+    getInternshipLearningAnalytics,
+    getLearnerProgressDetail
 };
