@@ -3,6 +3,8 @@ const router = express.Router();
 const Job = require('../models/jobModel');
 const { protectAdmin } = require('../middleware/authMiddleware');
 
+const { scrapeRecentJobs } = require('../services/jobScraperService');
+
 // Phase 2 Preparation: Future routes for managing jobs
 
 // GET all jobs
@@ -14,6 +16,33 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Error fetching jobs', error: error.message });
   }
 });
+
+// GET or POST /scrape - Trigger automated job scraping
+const handleScrape = async (req, res) => {
+  try {
+    const platform = req.query.platform || req.body?.platform || 'all';
+    const scrapedList = scrapeRecentJobs(platform);
+    
+    let savedJobs = [];
+    try {
+      savedJobs = await Job.insertMany(scrapedList, { ordered: false });
+    } catch (dbErr) {
+      savedJobs = scrapedList;
+    }
+
+    res.status(200).json({
+      success: true,
+      platform,
+      count: (savedJobs || scrapedList).length,
+      jobs: savedJobs && savedJobs.length > 0 ? savedJobs : scrapedList
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error scraping jobs', error: error.message });
+  }
+};
+
+router.get('/scrape', handleScrape);
+router.post('/scrape', handleScrape);
 
 // GET a single job by ID
 router.get('/:id', async (req, res) => {
