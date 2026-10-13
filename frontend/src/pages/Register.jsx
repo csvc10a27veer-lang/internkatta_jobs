@@ -295,11 +295,11 @@ function Register() {
                 Fill in your details to start your journey.
               </p>
 
-              <form onSubmit={handleSubmit} noValidate className="space-y-3 sm:space-y-3.5">
+              <form onSubmit={handleSubmit} noValidate className="space-y-3.5 sm:space-y-4">
                 {/* 2-Column: Full Name & Mobile Number */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
                   <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs sm:text-[13px] font-semibold text-slate-700 mb-1">
                       Full Name
                     </label>
                     <div className="relative flex items-center">
@@ -310,7 +310,7 @@ function Register() {
                         value={formData.fullName}
                         onChange={handleChange}
                         placeholder="John Doe"
-                        className={`w-full pl-10 pr-3 py-2 sm:py-2.5 bg-slate-50 border rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
+                        className={`w-full pl-10 pr-3 py-2.5 sm:py-3 bg-slate-50 border rounded-2xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
                           errors.fullName ? "border-red-300" : "border-slate-200"
                         }`}
                       />
@@ -321,7 +321,7 @@ function Register() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs sm:text-[13px] font-semibold text-slate-700 mb-1">
                       Mobile Number
                     </label>
                     <div className="relative flex items-center">
@@ -333,7 +333,7 @@ function Register() {
                         onChange={handleChange}
                         maxLength="10"
                         placeholder="10-digit number"
-                        className={`w-full pl-10 pr-3 py-2 sm:py-2.5 bg-slate-50 border rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
+                        className={`w-full pl-10 pr-3 py-2.5 sm:py-3 bg-slate-50 border rounded-2xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
                           errors.phone ? "border-red-300" : "border-slate-200"
                         }`}
                       />
@@ -346,7 +346,7 @@ function Register() {
 
                 {/* Email Address */}
                 <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs sm:text-[13px] font-semibold text-slate-700 mb-1">
                     Email Address
                   </label>
                   <div className="relative flex items-center">
@@ -357,7 +357,7 @@ function Register() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="you@example.com"
-                      className={`w-full pl-10 pr-3 py-2 sm:py-2.5 bg-slate-50 border rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
+                      className={`w-full pl-10 pr-3 py-2.5 sm:py-3 bg-slate-50 border rounded-2xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
                         errors.email ? "border-red-300" : "border-slate-200"
                       }`}
                     />
@@ -370,7 +370,7 @@ function Register() {
                 {/* Security Question & Answer (2-Column) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
                   <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs sm:text-[13px] font-semibold text-slate-700 mb-1">
                       Security Question
                     </label>
                     <div className="relative flex items-center">
@@ -379,7 +379,7 @@ function Register() {
                         name="securityQuestion"
                         value={formData.securityQuestion}
                         onChange={handleChange}
-                        className={`w-full pl-10 pr-3 py-2 sm:py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none appearance-none ${
+                        className={`w-full pl-10 pr-3 py-2.5 sm:py-3 bg-slate-50 border rounded-2xl text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none appearance-none ${
                           formData.securityQuestion ? "text-slate-800" : "text-slate-400"
                         } ${errors.securityQuestion ? "border-red-300" : "border-slate-200"}`}
                       >
@@ -397,7 +397,7 @@ function Register() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs sm:text-[13px] font-semibold text-slate-700 mb-1">
                       Security Answer
                     </label>
                     <div className="relative flex items-center">
@@ -409,7 +409,7 @@ function Register() {
                         onChange={handleChange}
                         disabled={!formData.securityQuestion}
                         placeholder="Your answer"
-                        className={`w-full pl-10 pr-3 py-2 sm:py-2.5 bg-slate-50 border rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none disabled:bg-slate-100 disabled:cursor-not-allowed ${
+                        className={`w-full pl-10 pr-3 py-2.5 sm:py-3 bg-slate-50 border rounded-2xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none disabled:bg-slate-100 disabled:cursor-not-allowed ${
                           errors.securityAnswer ? "border-red-300" : "border-slate-200"
                         }`}
                       />
@@ -423,7 +423,7 @@ function Register() {
                 {/* Password & Confirm Password (2-Column) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
                   <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs sm:text-[13px] font-semibold text-slate-700 mb-1">
                       Password
                     </label>
                     <div className="relative flex items-center">
@@ -434,7 +434,7 @@ function Register() {
                         value={formData.password}
                         onChange={handleChange}
                         placeholder="Min 6 chars"
-                        className={`w-full pl-10 pr-12 py-2 sm:py-2.5 bg-slate-50 border rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
+                        className={`w-full pl-10 pr-12 py-2.5 sm:py-3 bg-slate-50 border rounded-2xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
                           errors.password ? "border-red-300" : "border-slate-200"
                         }`}
                       />
@@ -452,7 +452,7 @@ function Register() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">
+                    <label className="block text-xs sm:text-[13px] font-semibold text-slate-700 mb-1">
                       Confirm Password
                     </label>
                     <div className="relative flex items-center">
@@ -463,7 +463,7 @@ function Register() {
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         placeholder="Re-enter password"
-                        className={`w-full pl-10 pr-12 py-2 sm:py-2.5 bg-slate-50 border rounded-xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
+                        className={`w-full pl-10 pr-12 py-2.5 sm:py-3 bg-slate-50 border rounded-2xl text-slate-800 placeholder-slate-400 text-xs sm:text-sm focus:bg-white focus:border-[#0066FF] focus:ring-4 focus:ring-blue-100 transition-all outline-none ${
                           errors.confirmPassword ? "border-red-300" : "border-slate-200"
                         }`}
                       />
@@ -488,48 +488,48 @@ function Register() {
                       type="button"
                       onClick={handleSendOTP}
                       disabled={otpSending}
-                      className="w-full py-3 sm:py-3.5 px-5 rounded-2xl font-bold text-white bg-[#0066FF] hover:bg-[#0052CC] active:scale-[0.99] transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                      className="w-full py-3.5 sm:py-4 px-6 rounded-2xl font-black text-white bg-[#0066FF] hover:bg-[#0052CC] active:scale-[0.99] transition-all shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2.5 text-base sm:text-lg cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                     >
                       {otpSending ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Loader2 className="w-5 h-5 animate-spin" />
                           <span>Sending OTP to Email...</span>
                         </>
                       ) : (
                         <>
                           <span>Send OTP to Email</span>
-                          <ArrowRight className="w-4 h-4" />
+                          <ArrowRight className="w-5 h-5" />
                         </>
                       )}
                     </button>
                   ) : (
-                    <div className="space-y-3 rounded-2xl bg-blue-50/60 p-4 border border-blue-200/70">
+                    <div className="space-y-4 rounded-2xl bg-blue-50/60 p-4 sm:p-5 border border-blue-200/70">
                       <div>
-                        <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">
-                          Enter 6-Digit OTP sent to <span className="text-[#0066FF]">{formData.email}</span>
+                        <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
+                          Enter 6-Digit OTP sent to <span className="font-bold text-[#0066FF]">{formData.email}</span>
                         </label>
                         <input
                           type="text"
-                          className="w-full py-2.5 px-4 bg-white border border-blue-200 rounded-xl text-center tracking-[0.3em] text-lg font-black text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                          className="w-full py-3 px-4 bg-white border border-blue-200 rounded-xl text-center tracking-[0.3em] text-xl font-black text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-100"
                           placeholder="XXXXXX"
                           value={otp}
-                          onChange={(e) => setOtp(e.target.value)}
+                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                           maxLength="6"
                         />
                       </div>
                       <button
                         type="submit"
                         disabled={isSubmitting || otp.length < 6}
-                        className="w-full py-3 px-5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                        className="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 text-base cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                       >
                         {isSubmitting ? (
                           <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <Loader2 className="w-5 h-5 animate-spin" />
                             <span>Verifying & Registering...</span>
                           </>
                         ) : (
                           <>
-                            <CheckCircle2 className="w-4 h-4" />
+                            <CheckCircle2 className="w-5 h-5" />
                             <span>Verify OTP & Complete Registration</span>
                           </>
                         )}
