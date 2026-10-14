@@ -1,8 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUserAuth } from '../../context/UserAuthContext';
 import { useNavigationWithLoading } from '../../hooks/useNavigationWithLoading';
-import { Menu, X, UserCircle2, Bell, ShoppingCart, Award, UserCheck, Sparkles } from 'lucide-react';
+import { 
+  Home, 
+  Briefcase, 
+  GraduationCap, 
+  BarChart2, 
+  MessageSquare, 
+  ShoppingCart, 
+  User, 
+  ArrowRight, 
+  ChevronDown, 
+  Bell, 
+  UserCircle2, 
+  Menu, 
+  X,
+  Award,
+  UserCheck,
+  Sparkles
+} from 'lucide-react';
 import { useSocket } from '../../context/SocketContext';
 import { CartContext } from '../../context/CartContext';
 import Logo from '../ui/Logo';
@@ -12,6 +29,8 @@ import { getImageUrl } from '../../utils/api';
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isInternshipOpen, setIsInternshipOpen] = useState(false);
+  const [isCoursesOpen, setIsCoursesOpen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [imageError, setImageError] = useState(false);
@@ -25,7 +44,6 @@ const Header = () => {
   const { cart } = React.useContext(CartContext);
 
   // Scope candidate profile in top navbar EXCLUSIVELY to dedicated Job Details pages (/jobs/:id or /job-details/:id)
-  // Main Jobs feed (/jobs, /jobs/, /job-portal, /careers) retains the original Cart, Login, Register buttons
   const isJobDetailsPage = (
     (location.pathname.startsWith('/jobs/') && location.pathname !== '/jobs' && location.pathname !== '/jobs/') ||
     (location.pathname.startsWith('/job-details/') && location.pathname !== '/job-details' && location.pathname !== '/job-details/')
@@ -80,6 +98,9 @@ const Header = () => {
     };
   }, []);
 
+  const internshipDropdownRef = useRef(null);
+  const coursesDropdownRef = useRef(null);
+
   // Reset image error if user profile picture changes
   useEffect(() => {
     setImageError(false);
@@ -103,12 +124,17 @@ const Header = () => {
       linkPath,
       page: location.pathname,
     });
+    setIsOpen(false);
+    setIsInternshipOpen(false);
+    setIsCoursesOpen(false);
     navigateWithLoading(linkPath);
   };
 
   const closeAllMenus = () => {
     setIsOpen(false);
     setIsProfileOpen(false);
+    setIsInternshipOpen(false);
+    setIsCoursesOpen(false);
   };
 
   useEffect(() => {
@@ -119,10 +145,16 @@ const Header = () => {
       if (isNotifOpen && !event.target.closest('#notif-menu-container') && !event.target.closest('#mobile-notif-menu-container')) {
         setIsNotifOpen(false);
       }
+      if (isInternshipOpen && internshipDropdownRef.current && !internshipDropdownRef.current.contains(event.target)) {
+        setIsInternshipOpen(false);
+      }
+      if (isCoursesOpen && coursesDropdownRef.current && !coursesDropdownRef.current.contains(event.target)) {
+        setIsCoursesOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isProfileOpen, isNotifOpen]);
+  }, [isProfileOpen, isNotifOpen, isInternshipOpen, isCoursesOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -142,72 +174,209 @@ const Header = () => {
 
   const isUserLoggedIn = auth && auth.token && auth.user?.role === 'user';
 
+  const internshipCategories = [
+    { name: 'All Internships', path: '/internship' },
+    { name: 'Full Stack Web Development', path: '/internship?category=Web' },
+    { name: 'AI & Machine Learning', path: '/internship?category=AIML' },
+    { name: 'Python & Django Development', path: '/internship?category=Python' },
+    { name: 'Data Science & Analytics', path: '/internship?category=Data+Science' },
+    { name: 'Android App Development', path: '/internship?category=Android' },
+    { name: 'Cyber Security & Ethical Hacking', path: '/internship?category=Cyber' },
+  ];
+
+  const courseCategories = [
+    { name: 'All Courses', path: '/courses' },
+    { name: 'MERN Stack Development', path: '/courses?category=MERN' },
+    { name: 'Python Full Stack Mastery', path: '/courses?category=Python' },
+    { name: 'Java & Spring Boot', path: '/courses?category=Java' },
+    { name: 'Database & SQL Engineering', path: '/courses?category=SQL' },
+    { name: 'Cloud Computing & DevOps', path: '/courses?category=Cloud' },
+  ];
+
   return (
-    // ✅ Added `relative` for absolute centering of nav links
-    <header className={`bg-white shadow-sm sticky top-0 z-50 transition-transform duration-300 border-b border-border relative ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-      <div className="max-w-8xl mx-auto w-full flex justify-between items-center px-4 sm:px-6 lg:px-8 py-3">
+    <header className={`sticky top-0 z-50 transition-transform duration-300 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+      {/* ── TOP ACCENT LINE ─────────────────────────────────────────────────── */}
+      <div className="h-[2.5px] w-full bg-gradient-to-r from-[#0052A3] via-[#0066FF] to-[#FF7A1A]" />
 
-        {/* LEFT: Logo */}
-        <Logo />
-
-        {/* CENTER: Nav Links — absolute centered on large screens */}
-        <div className="hidden lg:flex items-center space-x-8 text-body font-body font-medium absolute left-1/2 -translate-x-1/2">
-          <button
-            onClick={() => handleNavClick('Home', '/')}
-            className={`transition-colors duration-300 focus:outline-none rounded ${
-              isActive('/') ? 'text-[#FF8C42]' : 'text-text hover:text-[#FF7A1A]'
-            }`}
-          >
-            Home
-          </button>
-          <button
-            onClick={() => handleNavClick('Internships', '/internship')}
-            className={`transition-colors duration-300 focus:outline-none rounded ${
-              isActive('/internship') ? 'text-[#FF8C42]' : 'text-text hover:text-[#FF7A1A]'
-            }`}
-          >
-            Internships
-          </button>
-          <button
-            onClick={() => handleNavClick('Courses', '/courses')}
-            className={`transition-colors duration-300 focus:outline-none rounded ${
-              isActive('/courses') ? 'text-[#FF8C42]' : 'text-text hover:text-[#FF7A1A]'
-            }`}
-          >
-            Courses
-          </button>
-          <button
-            onClick={() => handleNavClick('Training', '/training')}
-            className={`transition-colors duration-300 focus:outline-none rounded ${
-              isActive('/training') ? 'text-[#FF8C42]' : 'text-text hover:text-[#FF7A1A]'
-            }`}
-          >
-            Training
-          </button>
-          <button
-            onClick={() => handleNavClick('Jobs', '/jobs')}
-            className={`transition-colors duration-300 focus:outline-none rounded relative ${
-              isActive('/jobs') ? 'text-[#FF8C42] font-semibold' : 'text-text hover:text-[#FF7A1A]'
-            }`}
-          >
-            <span>Jobs</span>
-            <span className="ml-1 px-1.5 py-0.2 text-[9px] font-bold bg-orange-100 text-orange-600 rounded-full">AI</span>
-          </button>
-          <button
-            onClick={() => handleNavClick('Contact', '/contact')}
-            className={`transition-colors duration-300 focus:outline-none rounded ${
-              isActive('/contact') ? 'text-[#FF8C42]' : 'text-text hover:text-[#FF7A1A]'
-            }`}
-          >
-            Contact
-          </button>
+      <div className="max-w-8xl mx-auto w-full flex justify-between items-center px-4 sm:px-6 lg:px-8 py-2.5">
+        
+        {/* ── LEFT: Logo & Divider ──────────────────────────────────────────── */}
+        <div className="flex items-center">
+          <Logo />
+          <div className="h-6 w-[1px] bg-slate-200 ml-4 mr-2 hidden xl:block" />
         </div>
 
-        {/* RIGHT: Auth / Profile */}
-        <div className="hidden lg:flex items-center space-x-3">
+        {/* ── CENTER: Modern Nav Links with Icons ───────────────────────────── */}
+        <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+          {/* 1. Home */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => handleNavClick('Home', '/')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                isActive('/') 
+                  ? 'bg-[#EBF3FE] text-[#0052A3] shadow-xs' 
+                  : 'text-slate-600 hover:text-[#0052A3] hover:bg-slate-50'
+              }`}
+            >
+              <Home className={`w-3.5 h-3.5 ${isActive('/') ? 'text-[#0052A3] fill-current' : 'text-slate-500'}`} />
+              <span>Home</span>
+            </button>
+            {isActive('/') && (
+              <div className="w-6 h-[2px] bg-[#0052A3] rounded-full mt-0.5" />
+            )}
+          </div>
+
+          {/* 2. Internships (with Dropdown) */}
+          <div 
+            className="relative" 
+            ref={internshipDropdownRef}
+            onMouseEnter={() => setIsInternshipOpen(true)}
+            onMouseLeave={() => setIsInternshipOpen(false)}
+          >
+            <div className="flex flex-col items-center">
+              <button
+                onClick={() => handleNavClick('Internships', '/internship')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  isActive('/internship') 
+                    ? 'bg-[#EBF3FE] text-[#0052A3] shadow-xs' 
+                    : 'text-slate-600 hover:text-[#0052A3] hover:bg-slate-50'
+                }`}
+              >
+                <Briefcase className={`w-3.5 h-3.5 ${isActive('/internship') ? 'text-[#0052A3]' : 'text-slate-500'}`} />
+                <span>Internships</span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isInternshipOpen ? 'rotate-180 text-[#0052A3]' : ''}`} />
+              </button>
+              {isActive('/internship') && (
+                <div className="w-6 h-[2px] bg-[#0052A3] rounded-full mt-0.5" />
+              )}
+            </div>
+
+            {/* Dropdown Menu */}
+            {isInternshipOpen && (
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-2xl shadow-xl shadow-blue-900/10 border border-slate-100 py-2.5 z-50 animate-fadeIn">
+                <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Browse by Domain
+                </div>
+                {internshipCategories.map((cat, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleNavClick(cat.name, cat.path)}
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-[#0052A3] transition-colors flex items-center justify-between cursor-pointer group"
+                  >
+                    <span>{cat.name}</span>
+                    <ArrowRight className="w-3 h-3 text-[#0052A3] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 3. Courses (with Dropdown) */}
+          <div 
+            className="relative" 
+            ref={coursesDropdownRef}
+            onMouseEnter={() => setIsCoursesOpen(true)}
+            onMouseLeave={() => setIsCoursesOpen(false)}
+          >
+            <div className="flex flex-col items-center">
+              <button
+                onClick={() => handleNavClick('Courses', '/courses')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  isActive('/courses') 
+                    ? 'bg-[#EBF3FE] text-[#0052A3] shadow-xs' 
+                    : 'text-slate-600 hover:text-[#0052A3] hover:bg-slate-50'
+                }`}
+              >
+                <GraduationCap className={`w-4 h-4 ${isActive('/courses') ? 'text-[#0052A3]' : 'text-slate-500'}`} />
+                <span>Courses</span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isCoursesOpen ? 'rotate-180 text-[#0052A3]' : ''}`} />
+              </button>
+              {isActive('/courses') && (
+                <div className="w-6 h-[2px] bg-[#0052A3] rounded-full mt-0.5" />
+              )}
+            </div>
+
+            {/* Dropdown Menu */}
+            {isCoursesOpen && (
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-2xl shadow-xl shadow-blue-900/10 border border-slate-100 py-2.5 z-50 animate-fadeIn">
+                <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Featured Programs
+                </div>
+                {courseCategories.map((cat, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleNavClick(cat.name, cat.path)}
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-[#0052A3] transition-colors flex items-center justify-between cursor-pointer group"
+                  >
+                    <span>{cat.name}</span>
+                    <ArrowRight className="w-3 h-3 text-[#0052A3] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 4. Training */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => handleNavClick('Training', '/training')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                isActive('/training') 
+                  ? 'bg-[#EBF3FE] text-[#0052A3] shadow-xs' 
+                  : 'text-slate-600 hover:text-[#0052A3] hover:bg-slate-50'
+              }`}
+            >
+              <BarChart2 className={`w-3.5 h-3.5 ${isActive('/training') ? 'text-[#0052A3]' : 'text-slate-500'}`} />
+              <span>Training</span>
+            </button>
+            {isActive('/training') && (
+              <div className="w-6 h-[2px] bg-[#0052A3] rounded-full mt-0.5" />
+            )}
+          </div>
+
+          {/* 5. Jobs (AI Platform) */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => handleNavClick('Jobs', '/jobs')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                isActive('/jobs') 
+                  ? 'bg-[#EBF3FE] text-[#0052A3] shadow-xs' 
+                  : 'text-slate-600 hover:text-[#0052A3] hover:bg-slate-50'
+              }`}
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isActive('/jobs') ? 'text-[#0052A3]' : 'text-orange-500'}`} />
+              <span>Jobs</span>
+              <span className="px-1.5 py-0.2 text-[9px] font-bold bg-orange-100 text-orange-600 rounded-full">AI</span>
+            </button>
+            {isActive('/jobs') && (
+              <div className="w-6 h-[2px] bg-[#0052A3] rounded-full mt-0.5" />
+            )}
+          </div>
+
+          {/* 6. Contact */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => handleNavClick('Contact', '/contact')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                isActive('/contact') 
+                  ? 'bg-[#EBF3FE] text-[#0052A3] shadow-xs' 
+                  : 'text-slate-600 hover:text-[#0052A3] hover:bg-slate-50'
+              }`}
+            >
+              <MessageSquare className={`w-3.5 h-3.5 ${isActive('/contact') ? 'text-[#0052A3]' : 'text-slate-500'}`} />
+              <span>Contact</span>
+            </button>
+            {isActive('/contact') && (
+              <div className="w-6 h-[2px] bg-[#0052A3] rounded-full mt-0.5" />
+            )}
+          </div>
+        </nav>
+
+        {/* ── RIGHT: Cart, Candidate Widget / Auth / Profile ────────────────── */}
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Candidate Profile Widget: Exclusively on Dedicated Job Details Pages for Guests */}
           {isJobDetailsPage && !isUserLoggedIn ? (
-            <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-200/90 rounded-xl p-1.5 pr-3 shadow-2xs">
+            <div className="hidden lg:flex items-center gap-2.5 bg-gray-50 border border-gray-200/90 rounded-xl p-1.5 pr-3 shadow-2xs">
               <div className={`w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center font-bold text-xs ${
                 candidateProfile?.completedInternships?.length > 0
                   ? 'bg-emerald-100 text-emerald-700'
@@ -242,136 +411,141 @@ const Header = () => {
                 Edit
               </button>
             </div>
-          ) : (
-            <>
-              {/* Cart Button */}
-              <button
-                onClick={() => handleNavClick('Cart', '/cart')}
-                className="p-2 relative text-gray-500 hover:text-brand-blue transition-colors focus:outline-none"
-              >
-                <ShoppingCart className="w-6 h-6" />
-                {cart && cart.length > 0 && (
-                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {cart.length > 99 ? '99+' : cart.length}
-                  </span>
+          ) : null}
+
+          {/* Shopping Cart Button */}
+          <button
+            onClick={() => handleNavClick('Cart', '/cart')}
+            aria-label="View Cart"
+            className="p-2 relative text-slate-700 hover:text-[#0052A3] hover:bg-slate-100/70 rounded-full transition-colors focus:outline-none cursor-pointer"
+          >
+            <ShoppingCart className="w-5 h-5 text-slate-700" />
+            <span className="absolute -top-0.5 -right-0.5 bg-[#0066FF] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+              {cart?.length || 0}
+            </span>
+          </button>
+
+          {isUserLoggedIn ? (
+            <div className="hidden lg:flex items-center gap-2">
+              {/* Notification Bell */}
+              <div className="relative" id="notif-menu-container">
+                <button
+                  onClick={() => setIsNotifOpen(!isNotifOpen)}
+                  aria-label="Notifications"
+                  className="p-2 relative text-slate-600 hover:text-[#0052A3] hover:bg-slate-100/70 rounded-full transition-colors focus:outline-none cursor-pointer"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0.5 right-0.5 bg-red-500 text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {isNotifOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl py-2 z-50 border border-slate-100 max-h-96 overflow-y-auto">
+                    <h3 className="px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                      Notifications
+                    </h3>
+                    {notifications.length > 0 ? (
+                      notifications.map(notif => (
+                        <div 
+                          key={notif._id} 
+                          className={`px-4 py-3 border-b border-slate-50 hover:bg-blue-50/50 cursor-pointer ${notif.isRead ? 'opacity-60' : 'bg-blue-50/30'}`}
+                          onClick={() => {
+                            if (!notif.isRead) markAsRead(notif._id);
+                            setIsNotifOpen(false);
+                            if (notif.link) navigate(notif.link);
+                          }}
+                        >
+                          <p className="text-xs font-semibold text-slate-800">{notif.title}</p>
+                          <p className="text-[11px] text-slate-600 mt-0.5">{notif.message}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="px-4 py-3 text-xs text-slate-500 text-center">No notifications yet</p>
+                    )}
+                  </div>
                 )}
-              </button>
+              </div>
 
-              {isUserLoggedIn ? (
-                <>
-                  {/* Notification Bell */}
-                  <div className="relative" id="notif-menu-container">
-                    <button
-                      onClick={() => setIsNotifOpen(!isNotifOpen)}
-                      className="p-2 relative text-gray-500 hover:text-brand-blue transition-colors focus:outline-none"
+              {/* User Profile Pill */}
+              <div className="relative" id="profile-menu-container">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200/80 transition-colors cursor-pointer"
+                >
+                  {(auth.user?.profilePicture && !imageError) ? (
+                    <img 
+                      src={getImageUrl(auth.user.profilePicture)} 
+                      alt="Profile" 
+                      className="h-7 w-7 rounded-full object-cover border border-slate-200"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <UserCircle2 className="h-6 w-6 text-[#0052A3]" />
+                  )}
+                  <span className="text-xs font-bold text-slate-800">
+                    {auth.user?.fullName ? auth.user.fullName.split(' ')[0] : 'Profile'}
+                  </span>
+                  <ChevronDown className="w-3 h-3 text-slate-500" />
+                </button>
+
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl py-1.5 z-50 border border-slate-100">
+                    <Link
+                      to="/user/mycourse"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-[#0052A3] transition-colors"
                     >
-                      <Bell className="w-6 h-6" />
-                      {unreadCount > 0 && (
-                        <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      )}
-                    </button>
-
-                    {isNotifOpen && (
-                      <div className="absolute right-0 mt-2 w-80 bg-white rounded-card shadow-lg py-2 z-50 border border-border max-h-96 overflow-y-auto">
-                        <h3 className="px-4 py-2 font-bold text-gray-700 border-b border-border">Notifications</h3>
-                        {notifications.length > 0 ? (
-                          notifications.map(notif => (
-                            <div 
-                              key={notif._id} 
-                              className={`px-4 py-3 border-b border-border hover:bg-gray-50 cursor-pointer ${notif.isRead ? 'opacity-60' : 'bg-indigo-50'}`}
-                              onClick={() => {
-                                if (!notif.isRead) markAsRead(notif._id);
-                                setIsNotifOpen(false);
-                                if (notif.link) navigate(notif.link);
-                              }}
-                            >
-                              <p className="text-sm font-semibold text-gray-800">{notif.title}</p>
-                              <p className="text-xs text-gray-600 mt-1">{notif.message}</p>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="px-4 py-3 text-sm text-gray-500 text-center">No notifications yet</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Profile Menu */}
-                  <div className="relative" id="profile-menu-container">
-                    <button
-                      onClick={() => setIsProfileOpen(!isProfileOpen)}
-                      className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 rounded"
+                      My Dashboard
+                    </Link>
+                    <Link
+                      to="/user/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-[#0052A3] transition-colors"
                     >
-                      {(auth.user?.profilePicture && !imageError) ? (
-                        <img 
-                          src={getImageUrl(auth.user.profilePicture)} 
-                          alt="Profile" 
-                          className="h-8 w-8 rounded-full object-cover border border-gray-200"
-                          onError={() => setImageError(true)}
-                        />
-                      ) : (
-                        <UserCircle2 className="h-7 w-7 text-brand-blue" />
-                      )}
-                      <span className="font-semibold text-text">
-                        {auth.user?.fullName ? auth.user.fullName.split(' ')[0] : 'Profile'}
-                      </span>
+                      My Profile
+                    </Link>
+                    <div className="h-[1px] bg-slate-100 my-1" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left block px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                    >
+                      Logout
                     </button>
-                    {isProfileOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-card shadow-lg py-1 z-50 border border-border">
-                        <Link
-                          to="/user/mycourse"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="block px-4 py-2 text-sm text-text hover:bg-surface transition-colors focus:outline-none focus:bg-surface"
-                        >
-                          My Dashboard
-                        </Link>
-                        <Link
-                          to="/user/profile"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="block px-4 py-2 text-sm text-text hover:bg-surface transition-colors focus:outline-none focus:bg-surface"
-                        >
-                          My Profile
-                        </Link>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-surface transition-colors focus:outline-none focus:bg-surface"
-                        >
-                          Logout
-                        </button>
-                      </div>
-                    )}
                   </div>
-                </>
-              ) : (
-                <div className="flex items-center space-x-3">
-                  <Link
-                    to="/login"
-                    className="px-4 py-2 border border-border rounded-button text-brand-blue hover:bg-surface transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="px-4 py-2 bg-brand-blue text-white rounded-button hover:bg-brand-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
-                  >
-                    Register
-                  </Link>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+                )}
+              </div>
+            </div>
+          ) : !isJobDetailsPage ? (
+            /* Login & Register Buttons (Modern Pill Style) */
+            <div className="hidden lg:flex items-center gap-2">
+              <Link
+                to="/login"
+                className="px-4 py-1.5 rounded-full border border-[#0052A3] text-[#0052A3] hover:bg-blue-50/80 font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+              >
+                <User className="w-3.5 h-3.5 text-[#0052A3]" />
+                <span>Login</span>
+              </Link>
 
-        {/* Mobile Controls */}
-        <div className="flex items-center space-x-3 lg:hidden">
-          {isJobDetailsPage && !isUserLoggedIn ? (
+              <Link
+                to="/register"
+                className="px-5 py-1.5 rounded-full bg-gradient-to-r from-[#0052A3] to-[#0066FF] hover:from-[#004080] hover:to-[#0052cc] text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm hover:shadow-md active:scale-95 transition-all cursor-pointer"
+              >
+                <span>Register</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          ) : null}
+
+          {/* Mobile Candidate Profile button on job details page */}
+          {isJobDetailsPage && !isUserLoggedIn && (
             <button
               onClick={() => {
                 window.dispatchEvent(new CustomEvent('open-candidate-profile-modal'));
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200 cursor-pointer"
+              className="lg:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200 cursor-pointer"
             >
               {candidateProfile?.profilePicture ? (
                 <img
@@ -384,159 +558,138 @@ const Header = () => {
               )}
               <span>{candidateProfile?.name ? candidateProfile.name.split(' ')[0] : 'Profile'}</span>
             </button>
-          ) : (
-            <button
-              onClick={() => handleNavClick('Cart', '/cart')}
-              className="p-2 relative text-gray-500 hover:text-brand-blue transition-colors focus:outline-none"
-            >
-              <ShoppingCart className="w-6 h-6" />
-              {cart && cart.length > 0 && (
-                <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  {cart.length > 99 ? '99+' : cart.length}
-                </span>
-              )}
-            </button>
           )}
 
+          {/* Mobile Notification for logged in user */}
           {isUserLoggedIn && (
-            <div className="relative" id="mobile-notif-menu-container">
+            <div className="lg:hidden relative" id="mobile-notif-menu-container">
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className="p-2 relative text-gray-500 hover:text-brand-blue transition-colors focus:outline-none"
+                className="p-2 relative text-slate-600 hover:text-[#0052A3] transition-colors focus:outline-none"
               >
-                <Bell className="w-6 h-6" />
+                <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {unreadCount > 99 ? '99+' : unreadCount}
+                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </button>
 
               {isNotifOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-card shadow-lg py-2 z-50 border border-border max-h-96 overflow-y-auto">
-                  <h3 className="px-4 py-2 font-bold text-gray-700 border-b border-border">Notifications</h3>
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl py-2 z-50 border border-slate-100 max-h-96 overflow-y-auto">
+                  <h3 className="px-4 py-2 font-bold text-xs uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                    Notifications
+                  </h3>
                   {notifications.length > 0 ? (
                     notifications.map(notif => (
                       <div 
                         key={notif._id} 
-                        className={`px-4 py-3 border-b border-border hover:bg-gray-50 cursor-pointer ${notif.isRead ? 'opacity-60' : 'bg-indigo-50'}`}
+                        className={`px-4 py-3 border-b border-slate-50 hover:bg-blue-50/50 cursor-pointer ${notif.isRead ? 'opacity-60' : 'bg-blue-50/30'}`}
                         onClick={() => {
                           if (!notif.isRead) markAsRead(notif._id);
                           setIsNotifOpen(false);
                           if (notif.link) navigateWithLoading(notif.link);
                         }}
                       >
-                        <p className="text-sm font-semibold text-gray-800">{notif.title}</p>
-                        <p className="text-xs text-gray-600 mt-1">{notif.message}</p>
+                        <p className="text-xs font-semibold text-slate-800">{notif.title}</p>
+                        <p className="text-[11px] text-slate-600 mt-0.5">{notif.message}</p>
                       </div>
                     ))
                   ) : (
-                    <p className="px-4 py-3 text-sm text-gray-500 text-center">No notifications yet</p>
+                    <p className="px-4 py-3 text-xs text-slate-500 text-center">No notifications yet</p>
                   )}
                 </div>
               )}
             </div>
           )}
-          
+
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="focus:outline-none p-2 hover:bg-surface rounded-lg transition-colors focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+            className="lg:hidden p-2 rounded-xl hover:bg-slate-100 text-slate-700 transition-colors focus:outline-none cursor-pointer"
             aria-label="Toggle menu"
           >
-            {isOpen ? <X size={24} className="text-text" /> : <Menu size={24} className="text-text" />}
+            {isOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
 
-      {/* MOBILE MENU */}
+      {/* ── MOBILE DRAWER MENU ──────────────────────────────────────────────── */}
       {isOpen && (
-        <div className="lg:hidden bg-white border-t border-border shadow-lg">
-          <div className="px-4 py-3 space-y-1">
+        <div className="lg:hidden bg-white border-t border-slate-100 px-4 py-4 shadow-xl animate-fadeIn">
+          <div className="space-y-1">
             <button
               onClick={() => { closeAllMenus(); handleNavClick('Home', '/'); }}
-              className={`block w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors focus:outline-none focus:bg-surface ${
-                isActive('/') ? 'text-[#FF8C42] font-semibold' : 'text-text'
+              className={`flex items-center gap-2.5 w-full text-left py-2.5 px-3.5 rounded-xl font-semibold text-sm transition-colors ${
+                isActive('/') ? 'bg-[#EBF3FE] text-[#0052A3]' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Home
+              <Home className="w-4 h-4" />
+              <span>Home</span>
             </button>
             <button
               onClick={() => { closeAllMenus(); handleNavClick('Internships', '/internship'); }}
-              className={`block w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors focus:outline-none focus:bg-surface ${
-                isActive('/internship') ? 'text-[#FF8C42] font-semibold' : 'text-text'
+              className={`flex items-center gap-2.5 w-full text-left py-2.5 px-3.5 rounded-xl font-semibold text-sm transition-colors ${
+                isActive('/internship') ? 'bg-[#EBF3FE] text-[#0052A3]' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Internships
+              <Briefcase className="w-4 h-4" />
+              <span>Internships</span>
             </button>
             <button
               onClick={() => { closeAllMenus(); handleNavClick('Courses', '/courses'); }}
-              className={`block w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors focus:outline-none focus:bg-surface ${
-                isActive('/courses') ? 'text-[#FF8C42] font-semibold' : 'text-text'
+              className={`flex items-center gap-2.5 w-full text-left py-2.5 px-3.5 rounded-xl font-semibold text-sm transition-colors ${
+                isActive('/courses') ? 'bg-[#EBF3FE] text-[#0052A3]' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Courses
+              <GraduationCap className="w-4 h-4" />
+              <span>Courses</span>
             </button>
             <button
               onClick={() => { closeAllMenus(); handleNavClick('Training', '/training'); }}
-              className={`block w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors focus:outline-none focus:bg-surface ${
-                isActive('/training') ? 'text-[#FF8C42] font-semibold' : 'text-text'
+              className={`flex items-center gap-2.5 w-full text-left py-2.5 px-3.5 rounded-xl font-semibold text-sm transition-colors ${
+                isActive('/training') ? 'bg-[#EBF3FE] text-[#0052A3]' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Training
+              <BarChart2 className="w-4 h-4" />
+              <span>Training</span>
             </button>
             <button
               onClick={() => { closeAllMenus(); handleNavClick('Jobs', '/jobs'); }}
-              className={`block w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors focus:outline-none focus:bg-surface ${
-                isActive('/jobs') ? 'text-[#FF8C42] font-semibold' : 'text-text'
+              className={`flex items-center justify-between w-full text-left py-2.5 px-3.5 rounded-xl font-semibold text-sm transition-colors ${
+                isActive('/jobs') ? 'bg-[#EBF3FE] text-[#0052A3]' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Jobs (AI Platform)
+              <div className="flex items-center gap-2.5">
+                <Sparkles className="w-4 h-4 text-orange-500" />
+                <span>Jobs (AI Platform)</span>
+              </div>
+              <span className="px-1.5 py-0.5 text-[9px] font-bold bg-orange-100 text-orange-600 rounded-full">AI</span>
             </button>
             <button
               onClick={() => { closeAllMenus(); handleNavClick('Contact', '/contact'); }}
-              className={`block w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors focus:outline-none focus:bg-surface ${
-                isActive('/contact') ? 'text-[#FF8C42] font-semibold' : 'text-text'
+              className={`flex items-center gap-2.5 w-full text-left py-2.5 px-3.5 rounded-xl font-semibold text-sm transition-colors ${
+                isActive('/contact') ? 'bg-[#EBF3FE] text-[#0052A3]' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              Contact
+              <MessageSquare className="w-4 h-4" />
+              <span>Contact</span>
             </button>
+          </div>
 
-            <button
-              onClick={() => { closeAllMenus(); handleNavClick('Cart', '/cart'); }}
-              className={`flex justify-between items-center w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors focus:outline-none focus:bg-surface ${
-                isActive('/cart') ? 'text-[#FF8C42] font-semibold' : 'text-text'
-              }`}
-            >
-              <span>Cart</span>
-              {cart && cart.length > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  {cart.length > 99 ? '99+' : cart.length}
-                </span>
-              )}
-            </button>
-
-            <hr className="my-3 border-border" />
-
+          <div className="pt-4 mt-3 border-t border-slate-100">
             {isUserLoggedIn ? (
-              <div className="space-y-1">
+              <div className="flex items-center justify-between px-2">
                 <Link
                   to="/user/mycourse"
                   onClick={closeAllMenus}
-                  className="block w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors font-semibold text-brand-blue focus:outline-none focus:bg-surface"
+                  className="text-sm font-bold text-[#0052A3] hover:underline"
                 >
                   My Dashboard
                 </Link>
-                <Link
-                  to="/user/profile"
-                  onClick={closeAllMenus}
-                  className="block w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors text-text focus:outline-none focus:bg-surface"
-                >
-                  My Profile
-                </Link>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left py-2 px-3 rounded-lg hover:bg-surface transition-colors text-red-600 focus:outline-none focus:bg-surface"
+                  className="text-sm font-semibold text-red-600 hover:underline cursor-pointer"
                 >
                   Logout
                 </button>
@@ -581,20 +734,22 @@ const Header = () => {
                 </button>
               </div>
             ) : (
-              <div className="space-y-2 pt-2">
+              <div className="flex items-center gap-2">
                 <Link
                   to="/login"
                   onClick={closeAllMenus}
-                  className="block w-full text-center py-2 px-4 rounded-button border border-border text-brand-blue hover:bg-surface transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+                  className="flex-1 py-2 text-center rounded-full border border-[#0052A3] text-[#0052A3] font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-blue-50 transition-colors"
                 >
-                  Login
+                  <User className="w-3.5 h-3.5" />
+                  <span>Login</span>
                 </Link>
                 <Link
                   to="/register"
                   onClick={closeAllMenus}
-                  className="block w-full text-center py-2 px-4 rounded-button bg-brand-blue text-white hover:bg-brand-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+                  className="flex-1 py-2 text-center rounded-full bg-gradient-to-r from-[#0052A3] to-[#0066FF] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
                 >
-                  Register
+                  <span>Register</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             )}
