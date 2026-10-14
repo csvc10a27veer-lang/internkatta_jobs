@@ -37,6 +37,8 @@ import PaymentCallback from '../pages/PaymentCallback';
 import MockPayment from '../pages/MockPayment';
 import DownloadCertificate from '../pages/DownloadCertificate';
 import VerificationPage from '../pages/VerificationPage';
+import JobsPage from '../pages/JobsPage';
+import JobDetailPage from '../pages/JobDetailPage';
 import NotFound from '../pages/NotFound';
 
 // User Dashboard Pages
@@ -118,6 +120,11 @@ const AppRoutes = () => {
           <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/download-certificate" element={<DownloadCertificate />} />
+          <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/jobs/:id" element={<JobDetailPage />} />
+          <Route path="/job-details/:id" element={<JobDetailPage />} />
+          <Route path="/job-portal" element={<JobsPage />} />
+          <Route path="/careers" element={<JobsPage />} />
           
           {/* Catch-all route for undefined paths, rendering the NotFound page with layout */}
           <Route path="*" element={<NotFound />} />

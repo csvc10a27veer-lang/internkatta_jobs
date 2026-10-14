@@ -1,8 +1,5 @@
 @import "tailwindcss";
 @import "./styles/theme.tokens.css";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* Disable spin buttons on number inputs globally */
 input[type=number]::-webkit-inner-spin-button,
@@ -13,6 +10,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 input[type=number] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* InternKatta Theme Tokens */
@@ -910,3 +908,39 @@ input[type=number] {
   pointer-events: none;
   z-index: -1;
 }
+
+/* ==========================================================================
+   Intern 4: AI Job & Recommendation Platform Styling Specification
+   ========================================================================== */
+.btn-locked {
+  background: #E2E8F0;
+  color: #94A3B8;
+  cursor: not-allowed;
+  border: 1px solid #CBD5E1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.btn-active-green {
+  background: #16A34A;
+  color: #FFFFFF;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 12px 24px;
+  border-radius: 8px;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.btn-active-green:hover {
+  background: #15803D;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+}
+
+.reco-alert-box {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 16px;
+  padding: 20px;
+}
