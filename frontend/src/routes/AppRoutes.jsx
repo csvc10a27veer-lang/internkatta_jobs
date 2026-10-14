@@ -70,8 +70,14 @@ import AdminCoursePlayerView from '../admin/CoursePlayerView';
 import TrainingRegistrations from '../admin/TrainingRegistrations';
 import RecycleBin from '../admin/RecycleBin';
 import SiteAnalytics from '../admin/SiteAnalytics';
+import CourseAnalysis from '../admin/CourseAnalysis';
+import InternshipAnalysis from '../admin/InternshipAnalysis';
 import InternshipLearningAnalytics from '../admin/InternshipLearningAnalytics';
+import LearnerProgressDetail from '../admin/LearnerProgressDetail';
 import AdminQA from '../admin/AdminQA';
+import ManageJobs from '../admin/jobs/ManageJobs';
+import JobAnalysis from '../admin/job-analysis/JobAnalysis';
+import ScrapingHistory from '../admin/jobs/ScrapingHistory';
 
 // Route Guards
 import ProtectedRoute from '../utils/ProtectedRoute';
@@ -209,8 +215,14 @@ const AppRoutes = () => {
             <Route path="training-registrations" element={<TrainingRegistrations />} />
             <Route path="recycle-bin" element={<RecycleBin />} />
             <Route path="site-analytics" element={<SiteAnalytics />} />
+            <Route path="course-analysis" element={<CourseAnalysis />} />
+            <Route path="internship-analysis" element={<InternshipAnalysis />} />
             <Route path="internship-learning-analytics" element={<InternshipLearningAnalytics />} />
+            <Route path="internship-learning-analytics/:userId/:internshipId" element={<LearnerProgressDetail />} />
             <Route path="qa" element={<AdminQA />} />
+            <Route path="jobs" element={<ManageJobs />} />
+            <Route path="scraping-history" element={<ScrapingHistory />} />
+            <Route path="job-analysis" element={<JobAnalysis />} />
             
             {/* Catch-all for admin dashboard */}
             <Route path="*" element={<NotFound />} />

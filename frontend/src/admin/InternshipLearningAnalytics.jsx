@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Activity,
   BookCheck,
@@ -42,6 +43,7 @@ const formatDate = (value) => (value ? new Date(value).toLocaleString('en-IN', {
 }) : 'No recent activity');
 
 const InternshipLearningAnalytics = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,38 +138,7 @@ const InternshipLearningAnalytics = () => {
         <StatCard label="Average progress" value={`${summary.averageProgress || 0}%`} icon={TrendingUp} tone="from-amber-500/20 via-amber-500/10 to-white" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.25fr]">
-        <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-sky-600" />
-            <h2 className="text-xl font-semibold text-slate-900">Top Internship Progress</h2>
-          </div>
-
-          {topInternships.length === 0 ? (
-            <p className="text-sm text-slate-500">No internship progress data found yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {topInternships.slice(0, 8).map((item) => (
-                <div key={item.internshipId} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{item.internshipTitle}</p>
-                      <p className="mt-1 text-xs text-slate-500">{item.learners} learners enrolled</p>
-                    </div>
-                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                      {item.averageProgress}% avg
-                    </span>
-                  </div>
-                  <div className="mt-3">
-                    <ProgressBar value={item.averageProgress} />
-                  </div>
-                  <p className="mt-2 text-xs text-slate-500">{item.completedEnrollments} completed enrollments</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
+      <div className="grid gap-6">
         <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -186,13 +157,14 @@ const InternshipLearningAnalytics = () => {
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
               <thead>
-                <tr className="text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  <th className="pb-3 pr-4">Learner</th>
-                  <th className="pb-3 pr-4">Internship</th>
-                  <th className="pb-3 pr-4">Progress</th>
-                  <th className="pb-3 pr-4">Completed</th>
-                  <th className="pb-3 pr-4">Pending</th>
-                  <th className="pb-3">Last activity</th>
+                <tr className="text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 border-b border-slate-200">
+                  <th className="pb-3 px-4">Learner</th>
+                  <th className="pb-3 px-4">Internship</th>
+                  <th className="pb-3 px-4">Progress</th>
+                  <th className="pb-3 px-4">Completed</th>
+                  <th className="pb-3 px-4">Pending</th>
+                  <th className="pb-3 px-4">Last activity</th>
+                  <th className="pb-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -204,16 +176,16 @@ const InternshipLearningAnalytics = () => {
                   </tr>
                 ) : (
                   filteredRows.map((row) => (
-                    <tr key={`${row.userId}-${row.internshipId}`} className="align-top">
-                      <td className="py-4 pr-4">
+                    <tr key={`${row.userId}-${row.internshipId}`} className="align-middle hover:bg-slate-50/50 transition-colors">
+                      <td className="py-4 px-4">
                         <p className="text-sm font-semibold text-slate-900">{row.userName}</p>
                         <p className="mt-1 text-xs text-slate-500">{row.userEmail}</p>
                       </td>
-                      <td className="py-4 pr-4">
+                      <td className="py-4 px-4">
                         <p className="text-sm font-semibold text-slate-900">{row.internshipTitle}</p>
                         <p className="mt-1 text-xs text-slate-500">{row.totalLectures} total lectures</p>
                       </td>
-                      <td className="py-4 pr-4">
+                      <td className="py-4 px-4">
                         <div className="min-w-[160px]">
                           <div className="mb-2 flex items-center justify-between text-xs font-medium text-slate-600">
                             <span>{row.progressPercent}%</span>
@@ -222,19 +194,29 @@ const InternshipLearningAnalytics = () => {
                           <ProgressBar value={row.progressPercent} />
                         </div>
                       </td>
-                      <td className="py-4 pr-4">
+                      <td className="py-4 px-4">
                         <div className="space-y-1 text-xs text-slate-600">
                           <p><span className="font-semibold text-slate-900">{row.completedCount}</span> completed</p>
                           <p><span className="font-semibold text-slate-900">{row.approvedCount}</span> approved</p>
                         </div>
                       </td>
-                      <td className="py-4 pr-4">
+                      <td className="py-4 px-4">
                         <div className="space-y-1 text-xs text-slate-600">
                           <p><span className="font-semibold text-slate-900">{row.pendingCount}</span> pending</p>
                           <p><span className="font-semibold text-slate-900">{row.rejectedCount}</span> rejected</p>
                         </div>
                       </td>
-                      <td className="py-4 text-xs text-slate-500">{formatDate(row.lastActivity)}</td>
+                      <td className="py-4 px-4 text-xs text-slate-500">
+                        {formatDate(row.lastActivity)}
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <button 
+                          onClick={() => navigate(`/admin/internship-learning-analytics/${row.userId}/${row.internshipId}`)}
+                          className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors"
+                        >
+                          View Details
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}

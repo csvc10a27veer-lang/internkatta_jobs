@@ -225,8 +225,7 @@ const SiteAnalytics = () => {
     [stats, activeVisitors, hasDateFilter]
   );
 
-  const topPages = stats?.mostVisitedPages || [];
-  const topInternships = stats?.mostClickedInternships || [];
+  const topPages = (stats?.mostVisitedPages || []).filter(page => getPageLabel(page._id) !== 'Home');
   const topNavLinks = stats?.mostClickedNavLinks || [];
 
   const visitSummary = useMemo(() => {
@@ -409,62 +408,32 @@ const SiteAnalytics = () => {
                 )}
               </div>
 
-              <div className="space-y-5">
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
-                  <div className="mb-4 flex items-center gap-2">
-                    <MousePointerClick className="h-4 w-4 text-amber-600" />
-                    <h3 className="font-semibold text-slate-900">Most Clicked Internships</h3>
-                  </div>
-                  {topInternships.length > 0 ? (
-                    <div className="space-y-3">
-                      {topInternships.map((item, index) => (
-                        <div key={`${item._id}-${index}`} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-semibold text-slate-900">{item.title || `ID: ${item._id}`}</p>
-                              <p className="mt-1 text-xs text-slate-500">{item._id}</p>
-                            </div>
-                            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${getBadgeClass('amber')}`}>
-                              {item.count} clicks
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
-                      No internship clicks recorded yet.
-                    </div>
-                  )}
+              <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+                <div className="mb-4 flex items-center gap-2">
+                  <Link2 className="h-4 w-4 text-violet-600" />
+                  <h3 className="font-semibold text-slate-900">Most Clicked Navigation Links</h3>
                 </div>
-
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
-                  <div className="mb-4 flex items-center gap-2">
-                    <Link2 className="h-4 w-4 text-violet-600" />
-                    <h3 className="font-semibold text-slate-900">Most Clicked Navigation Links</h3>
-                  </div>
-                  {topNavLinks.length > 0 ? (
-                    <div className="space-y-3">
-                      {topNavLinks.map((item, index) => (
-                        <div key={`${item._id}-${index}`} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold text-slate-900">{item._id}</p>
-                              <p className="mt-1 text-xs text-slate-500">{item.path || 'No path available'}</p>
-                            </div>
-                            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${getBadgeClass('violet')}`}>
-                              {item.count} clicks
-                            </span>
+                {topNavLinks.length > 0 ? (
+                  <div className="space-y-3">
+                    {topNavLinks.map((item, index) => (
+                      <div key={`${item._id}-${index}`} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-slate-900">{item._id}</p>
+                            <p className="mt-1 text-xs text-slate-500">{item.path || 'No path available'}</p>
                           </div>
+                          <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${getBadgeClass('violet')}`}>
+                            {item.count} clicks
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
-                      No navigation click data is available.
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
+                    No navigation click data is available.
+                  </div>
+                )}
               </div>
             </div>
           </SectionCard>
