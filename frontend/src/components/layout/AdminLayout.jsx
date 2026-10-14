@@ -146,6 +146,17 @@ const AdminLayout = () => {
           </NavLink>
 
           <NavLink
+            to="scraping-history"
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-4 py-2 rounded-md hover:bg-blue-100 ${
+                isActive ? 'bg-blue-200 font-semibold' : ''
+              }`
+            }
+          >
+            <History size={20} /> Scraping History
+          </NavLink>
+
+          <NavLink
             to="job-analysis"
             className={({ isActive }) =>
               `flex items-center gap-2 px-4 py-2 rounded-md hover:bg-blue-100 ${

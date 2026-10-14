@@ -75,6 +75,7 @@ import LearnerProgressDetail from '../admin/LearnerProgressDetail';
 import AdminQA from '../admin/AdminQA';
 import ManageJobs from '../admin/jobs/ManageJobs';
 import JobAnalysis from '../admin/job-analysis/JobAnalysis';
+import ScrapingHistory from '../admin/jobs/ScrapingHistory';
 
 // Route Guards
 import ProtectedRoute from '../utils/ProtectedRoute';
@@ -213,6 +214,7 @@ const AppRoutes = () => {
             <Route path="internship-learning-analytics/:userId/:internshipId" element={<LearnerProgressDetail />} />
             <Route path="qa" element={<AdminQA />} />
             <Route path="jobs" element={<ManageJobs />} />
+            <Route path="scraping-history" element={<ScrapingHistory />} />
             <Route path="job-analysis" element={<JobAnalysis />} />
             
             {/* Catch-all for admin dashboard */}

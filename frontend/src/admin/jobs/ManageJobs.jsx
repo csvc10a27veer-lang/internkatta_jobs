@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { initialJobs, scrapeJobsClient } from './mockJobs';
 import JobDetailsModal from './JobDetailsModal';
 import JobFormModal from './JobFormModal';
 import AutoScheduleModal from './AutoScheduleModal';
 import AutoScrapeHistoryModal from './AutoScrapeHistoryModal';
+import scrapeHistoryService from './scrapeHistoryService';
 import toast from 'react-hot-toast';
 import api from '../../utils/api';
 import { 
@@ -94,6 +96,7 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, jobTitle, company
 };
 
 const ManageJobs = () => {
+  const navigate = useNavigate();
   // Main State
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -149,7 +152,16 @@ const ManageJobs = () => {
   const [countdownSeconds, setCountdownSeconds] = useState(3600);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isScrapeHistoryOpen, setIsScrapeHistoryOpen] = useState(false);
-  const [scrapeHistory, setScrapeHistory] = useState([]);
+  const [scrapeHistory, setScrapeHistory] = useState(() => scrapeHistoryService.getHistory());
+
+  // Subscribe to persistent scrape history updates
+  useEffect(() => {
+    setScrapeHistory(scrapeHistoryService.getHistory());
+    const unsubscribe = scrapeHistoryService.subscribe((updated) => {
+      setScrapeHistory(updated);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -358,18 +370,24 @@ const ManageJobs = () => {
           playSuccessChime();
         }
 
-        // Record into Activity Log
-        setScrapeHistory(h => [
-          {
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-            platform: platformKey,
-            platformLabel,
-            addedCount,
-            skippedCount,
-            isScheduled
-          },
-          ...h.slice(0, 24)
-        ]);
+        // Record into Activity Log and Persistent Storage
+        scrapeHistoryService.addLog({
+          platform: platformKey,
+          platformLabel,
+          isScheduled,
+          addedCount,
+          skippedCount,
+          duration: '2.0s',
+          status: 'Completed',
+          jobsSummary: newJobs.slice(0, 5).map(j => ({
+            title: j.jobTitle,
+            company: j.companyName,
+            location: j.location,
+            experience: j.experience,
+            salary: j.salary,
+            skills: j.skills || []
+          }))
+        });
 
         if (isScheduled) {
           toast.success(`⏰ Daily Trigger: Auto-scraped ${addedCount} jobs from ${platformLabel}! (${skippedCount} duplicates skipped)`);
@@ -624,12 +642,15 @@ const ManageJobs = () => {
           </button>
           
           <button
-            onClick={() => setIsScrapeHistoryOpen(true)}
+            onClick={() => navigate('/admin/scraping-history')}
             className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-medium transition-colors shadow-2xs cursor-pointer"
-            title="View Scrape Activity History"
+            title="View Scrape Activity History Page"
           >
             <History size={16} className="text-purple-600" />
-            <span className="hidden sm:inline">Activity Logs</span>
+            <span className="hidden sm:inline">Scraping History</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold">
+              {scrapeHistory.length}
+            </span>
           </button>
 
           <button 
@@ -1143,9 +1164,31 @@ const ManageJobs = () => {
             )}
           </div>
 
+          {/* 3. HISTORY BUTTON -> DIRECTLY BELOW ALL EXPERIENCE (COLUMN 3) */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => navigate('/admin/scraping-history')}
+              className="w-full flex items-center justify-between gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-purple-50 hover:border-purple-400 hover:text-purple-700 transition-all cursor-pointer shadow-xs group"
+              title="Open all scraping history page with logs, analytics, and records"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <History size={16} className="text-purple-600 shrink-0 group-hover:rotate-[-20deg] transition-transform" />
+                <span className="font-semibold truncate">History</span>
+                <span className="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0 bg-purple-100 text-purple-700 group-hover:bg-purple-200">
+                  {scrapeHistory.length}
+                </span>
+              </div>
+              <div className="flex items-center gap-0.5 text-xs text-purple-600 font-semibold group-hover:translate-x-0.5 transition-transform shrink-0">
+                <span>Page</span>
+                <ChevronRight size={14} />
+              </div>
+            </button>
+          </div>
+
           {/* Reset Active Source Filter Button */}
           {sourceFilter && (
-            <div className="flex items-center sm:col-span-2">
+            <div className="flex items-center">
               <button
                 type="button"
                 onClick={() => setSourceFilter('')}
@@ -1404,7 +1447,7 @@ const ManageJobs = () => {
         isOpen={isScrapeHistoryOpen}
         onClose={() => setIsScrapeHistoryOpen(false)}
         history={scrapeHistory}
-        onClearHistory={() => setScrapeHistory([])}
+        onClearHistory={() => scrapeHistoryService.clearHistory()}
       />
 
     </div>
