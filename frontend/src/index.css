@@ -910,9 +910,8 @@ input[type=number] {
   z-index: -1;
 }
 
-/* ===================================================================
-
-Intern 4: AI Job & Recommendation Platform Styling Specification
+/* ==========================================================================
+   Intern 4: AI Job & Recommendation Platform Styling Specification
    ========================================================================== */
 .btn-locked {
   background: #E2E8F0;
@@ -945,7 +944,7 @@ Intern 4: AI Job & Recommendation Platform Styling Specification
   border: 1px solid #FCA5A5;
   border-radius: 16px;
   padding: 20px;
-=======
+}
 .font-serif-heading {
   font-family: 'Playfair Display', Georgia, serif;
 }
