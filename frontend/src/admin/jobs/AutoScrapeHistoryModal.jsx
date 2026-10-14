@@ -1,7 +1,9 @@
 import React from 'react';
-import { X, History, CheckCircle, ShieldCheck, Clock, Layers, Bot, Target, Linkedin, Briefcase, Building2, GraduationCap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, History, CheckCircle, ShieldCheck, Clock, Layers, Bot, Target, Linkedin, Briefcase, Building2, GraduationCap, ExternalLink } from 'lucide-react';
 
 const AutoScrapeHistoryModal = ({ isOpen, onClose, history, onClearHistory }) => {
+  const navigate = useNavigate();
   if (!isOpen) return null;
 
   return (
@@ -88,7 +90,7 @@ const AutoScrapeHistoryModal = ({ isOpen, onClose, history, onClearHistory }) =>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center gap-3">
           {history.length > 0 && (
             <button
               onClick={onClearHistory}
@@ -98,6 +100,16 @@ const AutoScrapeHistoryModal = ({ isOpen, onClose, history, onClearHistory }) =>
             </button>
           )}
           <div className="flex-1"></div>
+          <button
+            onClick={() => {
+              onClose();
+              navigate('/admin/scraping-history');
+            }}
+            className="px-3.5 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+          >
+            <span>Open Full History Page</span>
+            <ExternalLink size={13} />
+          </button>
           <button
             onClick={onClose}
             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 text-sm font-medium transition-colors cursor-pointer shadow-2xs"
