@@ -18,13 +18,16 @@ import {
   X,
   Award,
   UserCheck,
-  Sparkles
+  Sparkles,
+  Building2
 } from 'lucide-react';
 import { useSocket } from '../../context/SocketContext';
 import { CartContext } from '../../context/CartContext';
+import { useCandidateProfile } from '../../context/CandidateProfileContext';
 import Logo from '../ui/Logo';
 import { trackNavLinkClick } from '../../utils/trackClick';
 import { getImageUrl } from '../../utils/api';
+import { calculateProfileCompletion } from '../../utils/skillMatcher';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -49,54 +52,8 @@ const Header = () => {
     (location.pathname.startsWith('/job-details/') && location.pathname !== '/job-details' && location.pathname !== '/job-details/')
   );
 
-  // Candidate Profile State for Job Details Views
-  const [candidateProfile, setCandidateProfile] = useState(() => {
-    const saved = localStorage.getItem('internkatta_candidate_profile');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {}
-    }
-    return {
-      name: 'Aarav Sharma',
-      email: 'aarav.sharma@example.com',
-      education: 'B.Tech in Computer Science',
-      college: 'Pune University',
-      gradYear: '2025',
-      domain: 'Software Development',
-      skills: ['React.js', 'JavaScript', 'Node.js', 'MongoDB', 'CSS3', 'HTML5', 'Git'],
-      completedInternships: ['Full Stack Web Development Internship'],
-      profilePicture: '',
-      resumeName: ''
-    };
-  });
-
-  // Sync candidate profile across tabs and window custom events
-  useEffect(() => {
-    const syncProfile = () => {
-      const saved = localStorage.getItem('internkatta_candidate_profile');
-      if (saved) {
-        try {
-          setCandidateProfile(JSON.parse(saved));
-        } catch (e) {}
-      }
-    };
-
-    const handleCustomUpdate = (e) => {
-      if (e.detail) {
-        setCandidateProfile(e.detail);
-      } else {
-        syncProfile();
-      }
-    };
-
-    window.addEventListener('storage', syncProfile);
-    window.addEventListener('internkatta_profile_updated', handleCustomUpdate);
-    return () => {
-      window.removeEventListener('storage', syncProfile);
-      window.removeEventListener('internkatta_profile_updated', handleCustomUpdate);
-    };
-  }, []);
+  // Candidate Profile State from global CandidateProfileContext
+  const { candidateProfile, completionPercentage: candidateCompletion } = useCandidateProfile();
 
   const internshipDropdownRef = useRef(null);
   const coursesDropdownRef = useRef(null);
@@ -334,7 +291,7 @@ const Header = () => {
             )}
           </div>
 
-          {/* 5. Jobs (AI Platform) */}
+          {/* 5. Jobs */}
           <div className="flex flex-col items-center">
             <button
               onClick={() => handleNavClick('Jobs', '/jobs')}
@@ -344,9 +301,8 @@ const Header = () => {
                   : 'text-slate-600 hover:text-[#0052A3] hover:bg-slate-50'
               }`}
             >
-              <Sparkles className={`w-3.5 h-3.5 ${isActive('/jobs') ? 'text-[#0052A3]' : 'text-orange-500'}`} />
+              <Building2 className={`w-3.5 h-3.5 ${isActive('/jobs') ? 'text-[#0052A3]' : 'text-slate-500'}`} />
               <span>Jobs</span>
-              <span className="px-1.5 py-0.2 text-[9px] font-bold bg-orange-100 text-orange-600 rounded-full">AI</span>
             </button>
             {isActive('/jobs') && (
               <div className="w-6 h-[2px] bg-[#0052A3] rounded-full mt-0.5" />
@@ -396,10 +352,11 @@ const Header = () => {
               </div>
               <div className="text-left leading-tight">
                 <p className="text-xs font-bold text-gray-800">{candidateProfile?.name || 'Candidate'}</p>
-                <p className="text-[10px] text-gray-500 truncate max-w-[130px]">
-                  {candidateProfile?.completedInternships?.length > 0
-                    ? '✓ Verified InternKatta Alum'
-                    : `${candidateProfile?.skills?.length || 0} Skills Added`}
+                <p className="text-[10px] text-gray-500 truncate max-w-[130px] flex items-center gap-1 font-medium">
+                  <span>Profile:</span>
+                  <span className={`font-bold ${candidateCompletion === 100 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    {candidateCompletion}%
+                  </span>
                 </p>
               </div>
               <button
@@ -656,15 +613,12 @@ const Header = () => {
             </button>
             <button
               onClick={() => { closeAllMenus(); handleNavClick('Jobs', '/jobs'); }}
-              className={`flex items-center justify-between w-full text-left py-2.5 px-3.5 rounded-xl font-semibold text-sm transition-colors ${
+              className={`flex items-center gap-2.5 w-full text-left py-2.5 px-3.5 rounded-xl font-semibold text-sm transition-colors ${
                 isActive('/jobs') ? 'bg-[#EBF3FE] text-[#0052A3]' : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <div className="flex items-center gap-2.5">
-                <Sparkles className="w-4 h-4 text-orange-500" />
-                <span>Jobs (AI Platform)</span>
-              </div>
-              <span className="px-1.5 py-0.5 text-[9px] font-bold bg-orange-100 text-orange-600 rounded-full">AI</span>
+              <Building2 className="w-4 h-4" />
+              <span>Jobs</span>
             </button>
             <button
               onClick={() => { closeAllMenus(); handleNavClick('Contact', '/contact'); }}
@@ -716,10 +670,11 @@ const Header = () => {
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-xs font-bold text-gray-900 truncate">{candidateProfile?.name || 'Candidate'}</p>
-                    <p className="text-[11px] text-gray-500 truncate">
-                      {candidateProfile?.completedInternships?.length > 0
-                        ? '✓ Verified InternKatta Alum'
-                        : `${candidateProfile?.skills?.length || 0} Skills Added`}
+                    <p className="text-[11px] text-gray-500 truncate flex items-center gap-1 font-medium">
+                      <span>Profile:</span>
+                      <span className={`font-bold ${candidateCompletion === 100 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                        {candidateCompletion}%
+                      </span>
                     </p>
                   </div>
                 </div>

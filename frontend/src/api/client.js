@@ -1,14 +1,9 @@
 // src/api/client.js
 import axios from 'axios';
+import api from '../utils/api';
 import { calculateSkillMatchMetrics, isSkillMatch } from '../utils/skillMatcher';
 
-const FASTAPI_URL = import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_AI_API_URL || 'http://localhost:8000/api';
-
-const API = axios.create({
-  baseURL: FASTAPI_URL,
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 5000
-});
+const API = api;
 
 // Comprehensive Mock Data for Job Board (Used when FastAPI server is offline or initializing)
 export const MOCK_JOBS = [
@@ -17,7 +12,7 @@ export const MOCK_JOBS = [
     title: 'Junior Full Stack Developer',
     company: 'TechCorp Solutions',
     location: 'Bangalore, India (Hybrid)',
-    domain: 'Software Development',
+    domain: 'Software & Web Development',
     type: 'Full-time',
     salary: '₹6,00,000 - ₹9,00,000 / yr',
     experience: '0-2 Years',
@@ -38,7 +33,7 @@ export const MOCK_JOBS = [
     title: 'Data Science & ML Associate',
     company: 'NeuralMetrics AI',
     location: 'Pune, India (Remote)',
-    domain: 'Data Science',
+    domain: 'Data Science & Analytics',
     type: 'Full-time',
     salary: '₹7,50,000 - ₹11,00,000 / yr',
     experience: '0-1 Years',
@@ -59,7 +54,7 @@ export const MOCK_JOBS = [
     title: 'Frontend React Developer',
     company: 'InnovateX Digital',
     location: 'Mumbai, India (On-site)',
-    domain: 'Software Development',
+    domain: 'Software & Web Development',
     type: 'Full-time',
     salary: '₹5,50,000 - ₹8,00,000 / yr',
     experience: 'Fresher / 0-1 Years',
@@ -79,7 +74,7 @@ export const MOCK_JOBS = [
     title: 'Digital Marketing & Growth Specialist',
     company: 'BrandElevate Media',
     location: 'Hyderabad, India (Hybrid)',
-    domain: 'Digital Marketing',
+    domain: 'Marketing & Business',
     type: 'Full-time',
     salary: '₹4,50,000 - ₹6,50,000 / yr',
     experience: '0-2 Years',
@@ -141,7 +136,7 @@ export const INTERNKATTA_INTERNSHIPS_CATALOG = [
   {
     id: 'ik-fsd',
     title: 'Full Stack Web Development Internship',
-    domain: 'Software Development',
+    domain: 'Software & Web Development',
     url: '/internship',
     duration: '2 Months',
     rating: '4.9 ★',
@@ -152,7 +147,7 @@ export const INTERNKATTA_INTERNSHIPS_CATALOG = [
   {
     id: 'ik-ds',
     title: 'Data Science & Machine Learning Internship',
-    domain: 'Data Science',
+    domain: 'Data Science & Analytics',
     url: '/internship',
     duration: '2 Months',
     rating: '4.8 ★',
@@ -163,7 +158,7 @@ export const INTERNKATTA_INTERNSHIPS_CATALOG = [
   {
     id: 'ik-fe',
     title: 'React Frontend Development Internship',
-    domain: 'Software Development',
+    domain: 'Software & Web Development',
     url: '/internship',
     duration: '1 Month',
     rating: '4.9 ★',
@@ -174,7 +169,7 @@ export const INTERNKATTA_INTERNSHIPS_CATALOG = [
   {
     id: 'ik-dm',
     title: 'Digital Marketing & SEO Internship',
-    domain: 'Digital Marketing',
+    domain: 'Marketing & Business',
     url: '/internship',
     duration: '1 Month',
     rating: '4.7 ★',
@@ -272,55 +267,66 @@ export const evaluateMockEligibility = (job, userProfile) => {
 };
 
 // API Methods
-export const fetchJobs = async (domain = '') => {
+export const fetchJobs = async (filters = {}) => {
   try {
-    const response = await API.get('/jobs', { params: domain && domain !== 'All Domains' ? { domain } : {} });
-    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-      return response.data;
+    const params = {};
+    if (typeof filters === 'string') {
+      if (filters && filters !== 'All Domains') params.domain = filters;
+    } else if (filters && typeof filters === 'object') {
+      if (filters.domain && filters.domain !== 'All Domains') params.domain = filters.domain;
+      if (filters.location && filters.location !== 'All Locations') params.location = filters.location;
+      if (filters.search) params.search = filters.search;
     }
-    // Fallback to filtered mock
-    if (domain && domain !== 'All Domains') {
-      return MOCK_JOBS.filter((j) => j.domain.toLowerCase() === domain.toLowerCase());
+
+    const response = await api.get('/api/jobs', { params });
+    if (response.data && Array.isArray(response.data)) {
+      return response.data;
     }
     return MOCK_JOBS;
   } catch (err) {
-    console.warn('[AI Job API] FastAPI backend not available, running in mock mode:', err.message);
-    if (domain && domain !== 'All Domains') {
-      return MOCK_JOBS.filter((j) => j.domain.toLowerCase() === domain.toLowerCase());
+    console.warn('[Jobs API] Live backend fetch error, falling back to mock:', err.message);
+    if (typeof filters === 'string' && filters && filters !== 'All Domains') {
+      return MOCK_JOBS.filter((j) => j.domain?.toLowerCase() === filters.toLowerCase());
     }
     return MOCK_JOBS;
   }
 };
 
-export const checkEligibility = async (userId, jobId, userProfile = null) => {
+export const fetchJobById = async (id) => {
   try {
-    const response = await API.post('/eligibility/check', {
-      user_id: userId,
-      job_id: jobId,
-      profile: userProfile
-    });
-    if (response.data && typeof response.data.is_eligible === 'boolean') {
+    const response = await api.get(`/api/jobs/${id}`);
+    if (response.data && (response.data._id || response.data.id)) {
       return response.data;
     }
-    const targetJob = MOCK_JOBS.find((j) => j.id === jobId) || MOCK_JOBS[0];
-    return evaluateMockEligibility(targetJob, userProfile);
+    return MOCK_JOBS.find((j) => j.id === id || j._id === id) || null;
+  } catch (err) {
+    return MOCK_JOBS.find((j) => j.id === id || j._id === id) || null;
+  }
+};
+
+export const checkEligibility = async (userId, jobId, userProfile = null) => {
+  try {
+    let targetJob = MOCK_JOBS.find((j) => j.id === jobId || j._id === jobId);
+    if (!targetJob && jobId) {
+      targetJob = await fetchJobById(jobId);
+    }
+    return evaluateMockEligibility(targetJob || MOCK_JOBS[0], userProfile);
   } catch (err) {
     console.warn('[AI Job API] Live check failed, evaluating with intelligent mock engine:', err.message);
-    const targetJob = MOCK_JOBS.find((j) => j.id === jobId) || MOCK_JOBS[0];
+    const targetJob = MOCK_JOBS.find((j) => j.id === jobId || j._id === jobId) || MOCK_JOBS[0];
     return evaluateMockEligibility(targetJob, userProfile);
   }
 };
 
 export const applyToJob = async (userId, jobId, userProfile = null) => {
   try {
-    const response = await API.post('/applications/apply', {
+    const response = await api.post('/api/applications/apply', {
       user_id: userId,
       job_id: jobId,
       profile: userProfile
     });
     return response.data || { success: true, application_id: `APP-${Date.now()}` };
   } catch (err) {
-    console.warn('[AI Job API] Live apply failed, completing via mock handler:', err.message);
     return {
       success: true,
       application_id: `APP-${Math.floor(100000 + Math.random() * 900000)}`,

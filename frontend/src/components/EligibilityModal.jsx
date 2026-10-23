@@ -1,5 +1,6 @@
 // src/components/EligibilityModal.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   X, 
   UserCheck, 
@@ -17,24 +18,37 @@ import {
   RotateCcw,
   User,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  BookOpen,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
-import { INTERNKATTA_INTERNSHIPS_CATALOG } from '../api/client';
+import api from '../utils/api';
 import { parseResumeFile } from '../utils/resumeParser';
 import toast from 'react-hot-toast';
+import { useCandidateProfile } from '../context/CandidateProfileContext';
 
-export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveProfile }) {
+export default function EligibilityModal({ isOpen, onClose, userProfile: propUserProfile, onSaveProfile }) {
   if (!isOpen) return null;
 
+  const navigate = useNavigate();
+  const {
+    candidateProfile: ctxProfile,
+    updateLiveDraft,
+    saveCandidateProfile
+  } = useCandidateProfile();
+
+  const userProfile = propUserProfile || ctxProfile;
+
   const [formData, setFormData] = useState({
-    name: userProfile?.name || 'Aarav Sharma',
-    email: userProfile?.email || 'aarav.sharma@example.com',
+    name: userProfile?.name || 'Aniket Rajendra Patil',
+    email: userProfile?.email || 'aniket.patil@example.com',
     education: userProfile?.education || 'B.Tech in Computer Science',
     college: userProfile?.college || 'Pune Institute of Computer Technology',
     gradYear: userProfile?.gradYear || '2025',
-    domain: userProfile?.domain || 'Software Development',
-    skillsInput: userProfile?.skills?.join(', ') || 'React.js, Node.js, JavaScript, MongoDB, CSS3',
-    completedInternships: userProfile?.completedInternships || ['Full Stack Web Development Internship'],
+    domain: userProfile?.domain || 'Software & Web Development',
+    skillsInput: userProfile?.skillsInput || (userProfile?.skills?.join(', ') || 'React.js, Node.js, JavaScript, MongoDB, CSS3'),
+    completedInternships: userProfile?.completedInternships || [],
     profilePicture: userProfile?.profilePicture || userProfile?.avatar || ''
   });
 
@@ -45,11 +59,71 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
   const [isDragOver, setIsDragOver] = useState(false);
   const [isAutoFilled, setIsAutoFilled] = useState(Boolean(userProfile?.resumeName));
 
+  // Sync live draft to CandidateProfileContext so widgets update in real-time
+  useEffect(() => {
+    updateLiveDraft({
+      ...formData,
+      resumeName: uploadedResumeName,
+      resumeSize: uploadedResumeSize
+    });
+  }, [formData, uploadedResumeName, uploadedResumeSize, updateLiveDraft]);
+
   // File Input Refs
   const profileImageInputRef = useRef(null);
   const resumeInputRef = useRef(null);
 
-  const availableInternships = INTERNKATTA_INTERNSHIPS_CATALOG.map((i) => i.title);
+  // Live Enrolled Internships from Backend API
+  const [liveInternships, setLiveInternships] = useState(userProfile?.enrolledInternships || []);
+  const [isLoadingInternships, setIsLoadingInternships] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveInternships = async () => {
+      setIsLoadingInternships(true);
+      try {
+        const { data } = await api.get('/api/users/my-internships');
+        const list = Array.isArray(data) ? data : (data?.data && Array.isArray(data.data) ? data.data : []);
+        if (isMounted) {
+          if (list.length > 0) {
+            setLiveInternships(list);
+          } else if (userProfile?.enrolledInternships?.length > 0) {
+            setLiveInternships(userProfile.enrolledInternships);
+          } else if (userProfile?.completedInternships?.length > 0) {
+            setLiveInternships(
+              userProfile.completedInternships.map((title) => ({
+                title,
+                progress: 100,
+                status: 'Completed'
+              }))
+            );
+          } else {
+            setLiveInternships([]);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          if (userProfile?.enrolledInternships?.length > 0) {
+            setLiveInternships(userProfile.enrolledInternships);
+          } else if (userProfile?.completedInternships?.length > 0) {
+            setLiveInternships(
+              userProfile.completedInternships.map((title) => ({
+                title,
+                progress: 100,
+                status: 'Completed'
+              }))
+            );
+          } else {
+            setLiveInternships([]);
+          }
+        }
+      } finally {
+        if (isMounted) setIsLoadingInternships(false);
+      }
+    };
+
+    fetchLiveInternships();
+    return () => { isMounted = false; };
+  }, [userProfile]);
 
   // Profile Picture Handler
   const handleProfileImageChange = (e) => {
@@ -165,31 +239,71 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
     }
   };
 
-  const toggleInternship = (title) => {
-    setFormData((prev) => {
-      const exists = prev.completedInternships.includes(title);
-      return {
-        ...prev,
-        completedInternships: exists
-          ? prev.completedInternships.filter((t) => t !== title)
-          : [...prev.completedInternships, title]
-      };
-    });
-  };
+
+  // Mandatory 6 Fields Verification & Dynamic Profile Completion Metric
+  const hasProfilePic = Boolean(formData.profilePicture);
+  const hasResume = Boolean(uploadedResumeName || userProfile?.resumeName);
+  const hasName = Boolean(formData.name && formData.name.trim());
+  const hasEmail = Boolean(formData.email && formData.email.trim() && /\S+@\S+\.\S+/.test(formData.email.trim()));
+  const hasEducation = Boolean(formData.education && formData.education.trim());
+  const skillsArray = formData.skillsInput
+    ? formData.skillsInput.split(',').map((s) => s.trim()).filter(Boolean)
+    : [];
+  const hasSkills = skillsArray.length > 0;
+
+  const mandatoryChecks = [
+    { id: 'pic', label: 'Profile Picture', filled: hasProfilePic },
+    { id: 'resume', label: 'Resume Upload', filled: hasResume },
+    { id: 'name', label: 'Full Name', filled: hasName },
+    { id: 'email', label: 'Email Address', filled: hasEmail },
+    { id: 'education', label: 'Degree / Qualification', filled: hasEducation },
+    { id: 'skills', label: 'Skills (at least 1)', filled: hasSkills }
+  ];
+
+  const filledCount = mandatoryChecks.filter((c) => c.filled).length;
+  const completionPercentage = Math.round((filledCount / 6) * 100);
 
   const handleSave = (e) => {
     e.preventDefault();
-    const skillsArray = formData.skillsInput
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
 
-    onSaveProfile({
+    const missingFields = mandatoryChecks.filter((c) => !c.filled).map((c) => c.label);
+    if (missingFields.length > 0) {
+      toast.error(`Please complete all 6 mandatory fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    const liveCompleted = liveInternships
+      .filter((i) => (i.progress || 0) >= 100 || i.status === 'Completed' || i.isCompleted)
+      .map((i) => i.title);
+
+    const payload = {
       ...formData,
       skills: skillsArray,
       resumeName: uploadedResumeName,
-      resumeSize: uploadedResumeSize
-    });
+      resumeSize: uploadedResumeSize,
+      profileCompletion: completionPercentage,
+      completedInternships: liveCompleted,
+      enrolledInternships: liveInternships.map((i) => {
+        const prog = i.progress ?? 0;
+        const statusLabel = prog >= 100 || i.status === 'Completed'
+          ? 'Completed'
+          : prog > 0
+            ? `In Progress (${prog}%)`
+            : 'Enrolled';
+        return {
+          id: i._id || i.id,
+          title: i.title,
+          progress: prog,
+          status: statusLabel
+        };
+      })
+    };
+
+    saveCandidateProfile(payload);
+    if (typeof onSaveProfile === 'function') {
+      onSaveProfile(payload);
+    }
+    toast.success('Candidate profile saved!');
     onClose();
   };
 
@@ -216,11 +330,75 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
           </button>
         </div>
 
+        {/* Dynamic Profile Completion Metric Bar */}
+        <div className="px-6 py-3.5 bg-gradient-to-r from-orange-50/90 via-amber-50/70 to-white border-b border-orange-100">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-wider text-gray-800">
+                Profile Completion:
+              </span>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black shadow-2xs ${
+                completionPercentage === 100
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  : completionPercentage >= 50
+                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                    : 'bg-red-100 text-red-800 border border-red-300'
+              }`}>
+                {completionPercentage === 100 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                {completionPercentage === 100 ? 'Profile 100% Complete' : `${completionPercentage}%`}
+              </span>
+            </div>
+
+            {completionPercentage < 100 && (
+              <span className="text-[11px] font-semibold text-gray-500">
+                All 6 starred (<span className="text-red-500 font-bold">*</span>) fields required to apply
+              </span>
+            )}
+          </div>
+
+          {/* Progress Bar Track */}
+          <div className="w-full h-2.5 bg-gray-200/90 rounded-full overflow-hidden p-0.5 border border-gray-100">
+            <div 
+              className={`h-full transition-all duration-500 rounded-full ${
+                completionPercentage === 100
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                  : completionPercentage >= 50
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                    : 'bg-gradient-to-r from-red-500 to-orange-500'
+              }`}
+              style={{ width: `${completionPercentage}%` }}
+            />
+          </div>
+
+          {/* Required Fields Pill Indicators */}
+          {completionPercentage < 100 && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Required:</span>
+              {mandatoryChecks.map((f) => (
+                <span
+                  key={f.id}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${
+                    f.filled
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-red-50 text-red-700 border border-red-200 animate-pulse'
+                  }`}
+                >
+                  {f.filled ? `✓ ${f.label}` : `• ${f.label}`}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Scrollable Form Body */}
-        <form onSubmit={handleSave} className="p-6 max-h-[80vh] overflow-y-auto space-y-5">
+        <form onSubmit={handleSave} className="p-6 max-h-[75vh] overflow-y-auto space-y-5">
           
-          {/* 1. TOP PROFILE PICTURE UPLOAD */}
+          {/* 1. TOP PROFILE PICTURE UPLOAD (MANDATORY) */}
           <div className="flex flex-col items-center justify-center pt-1 pb-1">
+            <div className="flex items-center gap-1 mb-2">
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Profile Picture</span>
+              <span className="text-red-500 font-bold">*</span>
+            </div>
             <input
               type="file"
               ref={profileImageInputRef}
@@ -287,6 +465,7 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
               <label className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-orange-500" />
                 <span>Upload Resume & Auto-fill</span>
+                <span className="text-red-500 font-bold">*</span>
               </label>
               <span className="text-[10px] text-gray-400 font-medium">Supports PDF, DOCX, TXT</span>
             </div>
@@ -407,7 +586,7 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                Full Name
+                Full Name <span className="text-red-500 font-bold">*</span>
               </label>
               <input
                 type="text"
@@ -421,7 +600,7 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
 
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                Email Address
+                Email Address <span className="text-red-500 font-bold">*</span>
               </label>
               <input
                 type="email"
@@ -437,7 +616,7 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                Degree / Qualification
+                Degree / Qualification <span className="text-red-500 font-bold">*</span>
               </label>
               <input
                 type="text"
@@ -457,11 +636,15 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
                 onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
                 className="w-full px-3.5 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none bg-white font-medium text-gray-800"
               >
-                <option value="Software Development">Software Development</option>
-                <option value="Data Science">Data Science</option>
+                <option value="Software & Web Development">Software & Web Development</option>
+                <option value="Data Science & Analytics">Data Science & Analytics</option>
                 <option value="AI & Machine Learning">AI & Machine Learning</option>
-                <option value="Digital Marketing">Digital Marketing</option>
                 <option value="Cloud & DevOps">Cloud & DevOps</option>
+                <option value="Mobile App Development">Mobile App Development</option>
+                <option value="Robotic Process Automation (RPA)">Robotic Process Automation (RPA)</option>
+                <option value="Enterprise Systems (ERP)">Enterprise Systems (ERP)</option>
+                <option value="Cyber Security">Cyber Security</option>
+                <option value="Marketing & Business">Marketing & Business</option>
               </select>
             </div>
           </div>
@@ -469,7 +652,18 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
           {/* Skills Input */}
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center justify-between">
-              <span>Skills (Comma Separated)</span>
+              <span>
+                Skills (Comma Separated) <span className="text-red-500 font-bold">*</span>
+                {hasSkills ? (
+                  <span className="ml-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                    {skillsArray.length} added
+                  </span>
+                ) : (
+                  <span className="ml-1.5 text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.2 rounded border border-red-200">
+                    At least 1 required
+                  </span>
+                )}
+              </span>
               <span className="text-[10px] text-gray-400 font-normal">e.g. React.js, Node.js, Python, MongoDB</span>
             </label>
             <input
@@ -481,40 +675,100 @@ export default function EligibilityModal({ isOpen, onClose, userProfile, onSaveP
             />
           </div>
 
-          {/* Completed InternKatta Internships */}
+          {/* Verified Completed InternKatta Internships (Read-Only Live Statuses) */}
           <div className="pt-1">
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <Award className="w-4 h-4 text-orange-500" />
-              <span>Verified Completed InternKatta Internships</span>
-            </label>
-            <p className="text-[11px] text-gray-500 mb-2.5">
-              Check any internships completed on InternKatta. Having a verified completed internship unlocks the green <strong>Apply Now</strong> button on matching partner jobs!
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-orange-500" />
+                <span>Verified Completed InternKatta Internships</span>
+              </label>
+              {liveInternships.length > 0 && (
+                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  {liveInternships.filter((i) => (i.progress || 0) >= 100 || i.status === 'Completed').length} Completed
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-gray-500 mb-2.5 leading-normal">
+              Live records fetched from your InternKatta Learning Dashboard. Completed internships automatically unlock the green <strong className="text-emerald-700 font-bold">Apply Now</strong> button on matching partner jobs!
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-44 overflow-y-auto p-2 bg-gray-50 rounded-xl border border-gray-200/80">
-              {availableInternships.map((title) => {
-                const isChecked = formData.completedInternships.includes(title);
-                return (
-                  <button
-                    type="button"
-                    key={title}
-                    onClick={() => toggleInternship(title)}
-                    className={`flex items-start gap-2.5 p-2 rounded-lg text-left transition-all border text-xs cursor-pointer ${
-                      isChecked
-                        ? 'bg-orange-50 border-orange-300 text-orange-950 font-semibold shadow-2xs'
-                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 rounded mt-0.5 flex items-center justify-center border shrink-0 ${
-                      isChecked ? 'bg-orange-500 border-orange-500 text-white' : 'border-gray-300'
-                    }`}>
-                      {isChecked && <Check className="w-3 h-3" />}
-                    </div>
-                    <span className="leading-tight flex-1">{title}</span>
-                  </button>
-                );
-              })}
-            </div>
+            {isLoadingInternships ? (
+              <div className="flex items-center justify-center p-6 bg-gray-50 rounded-2xl border border-gray-200 text-xs text-gray-500 gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                <span>Fetching live internship enrollment & progress...</span>
+              </div>
+            ) : liveInternships.length === 0 ? (
+              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200/90 text-center">
+                <p className="text-xs font-semibold text-gray-700">No Enrolled Internships Found</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  Enroll in InternKatta internship accelerators to earn verified credentials and fast-track job applications.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto p-2 bg-gray-50 rounded-2xl border border-gray-200/90">
+                {liveInternships.map((internship, index) => {
+                  const progress = internship.progress ?? 0;
+                  const isCompleted = progress >= 100 || internship.status === 'Completed' || internship.isCompleted;
+                  const isInProgress = !isCompleted && (progress > 0 || internship.status?.includes('Progress'));
+                  const targetId = internship._id || internship.id;
+
+                  const handleCardClick = () => {
+                    onClose?.();
+                    if (targetId) {
+                      navigate(`/internship/${targetId}`);
+                    } else {
+                      navigate('/internship');
+                    }
+                  };
+
+                  return (
+                    <button
+                      key={targetId || `${internship.title}-${index}`}
+                      type="button"
+                      onClick={handleCardClick}
+                      className="w-full text-left cursor-pointer transition-all duration-200 hover:bg-slate-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 flex items-center justify-between gap-3 p-2.5 bg-white rounded-xl border border-gray-200/80 shadow-2xs group"
+                      title={`View ${internship.title} details`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          isCompleted
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : isInProgress
+                              ? 'bg-sky-100 text-sky-700'
+                              : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {isCompleted ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          ) : isInProgress ? (
+                            <TrendingUp className="w-4 h-4 text-sky-600" />
+                          ) : (
+                            <BookOpen className="w-4 h-4 text-slate-500" />
+                          )}
+                        </div>
+                        <span className="text-xs font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                          {internship.title}
+                        </span>
+                      </div>
+
+                      {/* Status Badge */}
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border shrink-0 transition-all ${
+                        isCompleted
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 group-hover:bg-emerald-100'
+                          : isInProgress
+                            ? 'bg-sky-50 text-sky-700 border-sky-200 group-hover:bg-sky-100'
+                            : 'bg-slate-100 text-slate-700 border-slate-200 group-hover:bg-slate-200'
+                      }`}>
+                        {isCompleted
+                          ? 'Completed'
+                          : isInProgress
+                            ? `In Progress (${progress}%)`
+                            : 'Enrolled'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Footer Actions */}

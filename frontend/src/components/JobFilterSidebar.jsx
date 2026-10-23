@@ -11,6 +11,10 @@ import {
   Cpu, 
   Megaphone, 
   Cloud,
+  Smartphone,
+  Bot,
+  Building2,
+  Shield,
   ChevronRight,
   ChevronDown,
   Check,
@@ -18,11 +22,15 @@ import {
 } from 'lucide-react';
 
 export const DOMAINS = [
-  'Software Development',
-  'Data Science',
+  'Software & Web Development',
+  'Data Science & Analytics',
   'AI & Machine Learning',
-  'Digital Marketing',
-  'Cloud & DevOps'
+  'Cloud & DevOps',
+  'Mobile App Development',
+  'Robotic Process Automation (RPA)',
+  'Enterprise Systems (ERP)',
+  'Cyber Security',
+  'Marketing & Business'
 ];
 
 export const LOCATIONS = [
@@ -37,16 +45,26 @@ export const LOCATIONS = [
 // Helper icon by domain
 const getDomainIcon = (domain) => {
   switch (domain) {
-    case 'Software Development':
+    case 'Software & Web Development':
       return <Code2 className="w-4 h-4" />;
-    case 'Data Science':
+    case 'Data Science & Analytics':
       return <Database className="w-4 h-4" />;
     case 'AI & Machine Learning':
+    case 'Artificial Intelligence & Machine Learning':
       return <Cpu className="w-4 h-4" />;
-    case 'Digital Marketing':
-      return <Megaphone className="w-4 h-4" />;
     case 'Cloud & DevOps':
+    case 'Cloud Computing & DevOps':
       return <Cloud className="w-4 h-4" />;
+    case 'Mobile App Development':
+      return <Smartphone className="w-4 h-4" />;
+    case 'Robotic Process Automation (RPA)':
+      return <Bot className="w-4 h-4" />;
+    case 'Enterprise Systems (ERP)':
+      return <Building2 className="w-4 h-4" />;
+    case 'Cyber Security':
+      return <Shield className="w-4 h-4" />;
+    case 'Marketing & Business':
+      return <Megaphone className="w-4 h-4" />;
     default:
       return <Layers className="w-4 h-4" />;
   }
@@ -71,7 +89,17 @@ export default function JobFilterSidebar({
 
   // Calculate job counts per domain and location
   const getDomainCount = (domain) => {
-    return jobs.filter((j) => j.domain?.toLowerCase() === domain.toLowerCase()).length;
+    return jobs.filter((j) => {
+      const d = (j.domain || 'Software & Web Development').toLowerCase();
+      const target = domain.toLowerCase();
+      if (d === target) return true;
+      if (domain === 'Software & Web Development' && d === 'software development') return true;
+      if (domain === 'Data Science & Analytics' && d === 'data science') return true;
+      if (domain === 'AI & Machine Learning' && (d === 'artificial intelligence & machine learning' || d === 'ai & ml')) return true;
+      if (domain === 'Cloud & DevOps' && (d === 'cloud computing & devops' || d === 'cloud & devops')) return true;
+      if (domain === 'Marketing & Business' && d === 'digital marketing') return true;
+      return false;
+    }).length;
   };
 
   const getLocationCount = (location) => {
@@ -155,15 +183,15 @@ export default function JobFilterSidebar({
                 <label
                   key={domain}
                   onClick={() => onToggleDomain(domain)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer select-none ${
+                  className={`w-full flex items-start justify-between gap-2 px-3 py-2 rounded-xl transition-all cursor-pointer select-none ${
                     isChecked
                       ? 'bg-orange-50/90 text-orange-900 font-bold border border-orange-200'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 border border-transparent'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 truncate">
+                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     {/* Custom Styled Checkbox */}
-                    <div className={`w-4 h-4 rounded-md flex items-center justify-center border transition-all shrink-0 ${
+                    <div className={`w-4 h-4 rounded-md flex items-center justify-center border transition-all shrink-0 mt-0.5 ${
                       isChecked
                         ? 'bg-orange-500 border-orange-500 text-white shadow-2xs'
                         : 'border-gray-300 bg-white'
@@ -171,13 +199,15 @@ export default function JobFilterSidebar({
                       {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
                     </div>
 
-                    <span className={isChecked ? 'text-orange-600' : 'text-gray-400'}>
+                    <span className={`shrink-0 mt-0.5 ${isChecked ? 'text-orange-600' : 'text-gray-400'}`}>
                       {getDomainIcon(domain)}
                     </span>
-                    <span className="truncate">{domain}</span>
+                    <span className="whitespace-normal break-words leading-tight text-sm">
+                      {domain}
+                    </span>
                   </div>
                   
-                  <span className={`text-[10px] px-2 py-0.5 rounded-md shrink-0 font-bold ${
+                  <span className={`text-[10px] px-2 py-0.5 rounded-md shrink-0 font-bold mt-0.5 ${
                     isChecked
                       ? 'bg-orange-200/70 text-orange-800'
                       : 'bg-gray-100 text-gray-500'

@@ -403,3 +403,34 @@ export const calculateSkillMatchMetrics = (candidateSkills = [], jobSkills = [])
     matchPercentage
   };
 };
+
+/**
+ * Calculates dynamic Candidate Intake profile completion percentage based on the 6 mandatory fields:
+ * 1. Profile Picture
+ * 2. Resume Upload
+ * 3. Full Name
+ * 4. Email Address
+ * 5. Degree / Qualification
+ * 6. Skills (at least 1 valid skill)
+ */
+export const calculateProfileCompletion = (profile) => {
+  if (!profile) return 0;
+
+  const hasPic = Boolean(profile.profilePicture || profile.avatar);
+  const hasResume = Boolean(profile.resumeName || profile.uploadedResumeName);
+  const hasName = Boolean(profile.name && profile.name.trim());
+  const hasEmail = Boolean(profile.email && profile.email.trim() && /\S+@\S+\.\S+/.test(profile.email.trim()));
+  const hasEducation = Boolean(profile.education && profile.education.trim());
+
+  let skillsList = [];
+  if (Array.isArray(profile.skills)) {
+    skillsList = profile.skills.filter(Boolean);
+  } else if (typeof profile.skillsInput === 'string') {
+    skillsList = profile.skillsInput.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  const hasSkills = skillsList.length > 0;
+
+  const checks = [hasPic, hasResume, hasName, hasEmail, hasEducation, hasSkills];
+  const filledCount = checks.filter(Boolean).length;
+  return Math.round((filledCount / 6) * 100);
+};

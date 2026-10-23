@@ -10,6 +10,7 @@ import { useLoading } from './context/LoadingContext';
 import { migrateAuthData } from './utils/authMigration';
 import { SocketProvider } from './context/SocketContext';
 import { CartProvider } from './context/CartContext';
+import { CandidateProfileProvider } from './context/CandidateProfileContext';
 
 import SecurityQuestionModal from './components/SecurityQuestionModal';
 
@@ -32,15 +33,17 @@ function App() {
 
   return (
     <UserAuthProvider>
-      <AdminAuthProvider>
-        <SocketProvider>
-          <CartProvider>
-            <LoadingProvider>
-              <AppContent />
-            </LoadingProvider>
-          </CartProvider>
-        </SocketProvider>
-      </AdminAuthProvider>
+      <CandidateProfileProvider>
+        <AdminAuthProvider>
+          <SocketProvider>
+            <CartProvider>
+              <LoadingProvider>
+                <AppContent />
+              </LoadingProvider>
+            </CartProvider>
+          </SocketProvider>
+        </AdminAuthProvider>
+      </CandidateProfileProvider>
     </UserAuthProvider>
   );
 }

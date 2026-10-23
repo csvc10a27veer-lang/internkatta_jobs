@@ -1,5 +1,5 @@
 // src/pages/JobDetailPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Building2, 
@@ -17,16 +17,20 @@ import {
   ArrowLeft, 
   UserCheck, 
   Share2, 
-  Check, 
-  Layers,
-  Award
+  Award,
+  Bookmark,
+  Send,
+  ArrowUpRight
 } from 'lucide-react';
-import { fetchJobs, checkEligibility, applyToJob, MOCK_JOBS } from '../api/client';
+import { fetchJobs, fetchJobById, checkEligibility, applyToJob, MOCK_JOBS } from '../api/client';
 import { isSkillMatch } from '../utils/skillMatcher';
+import { isJobApplied, markJobAsApplied } from '../utils/appliedJobsService';
+import { getRecommendedInternships } from '../utils/internshipRecommendations';
 import EligibilityModal from '../components/EligibilityModal';
 import SuccessModal from '../components/SuccessModal';
 import SEO from '../components/SEO';
 import toast from 'react-hot-toast';
+import { useCandidateProfile } from '../context/CandidateProfileContext';
 
 export default function JobDetailPage() {
   const { id } = useParams();
@@ -35,64 +39,17 @@ export default function JobDetailPage() {
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [eligibilityData, setEligibilityData] = useState(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [applicationResult, setApplicationResult] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
 
-  // Candidate Profile State from localStorage
-  const [userProfile, setUserProfile] = useState(() => {
-    const saved = localStorage.getItem('internkatta_candidate_profile');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        // ignore
-      }
-    }
-    return {
-      name: 'Aarav Sharma',
-      email: 'aarav.sharma@example.com',
-      education: 'B.Tech in Computer Science',
-      college: 'Pune University',
-      gradYear: '2025',
-      domain: 'Software Development',
-      skills: ['React.js', 'JavaScript', 'Node.js', 'MongoDB', 'CSS3', 'HTML5', 'Git'],
-      completedInternships: ['Full Stack Web Development Internship']
-    };
-  });
-
-  // Listen to profile updates from other tabs or modals
-  useEffect(() => {
-    const handleStorageUpdate = () => {
-      const saved = localStorage.getItem('internkatta_candidate_profile');
-      if (saved) {
-        try {
-          setUserProfile(JSON.parse(saved));
-        } catch (e) {}
-      }
-    };
-
-    const handleCustomEvent = (e) => {
-      if (e.detail) {
-        setUserProfile(e.detail);
-      } else {
-        handleStorageUpdate();
-      }
-    };
-
-    const handleOpenModal = () => setIsProfileModalOpen(true);
-
-    window.addEventListener('storage', handleStorageUpdate);
-    window.addEventListener('internkatta_profile_updated', handleCustomEvent);
-    window.addEventListener('open-candidate-profile-modal', handleOpenModal);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageUpdate);
-      window.removeEventListener('internkatta_profile_updated', handleCustomEvent);
-      window.removeEventListener('open-candidate-profile-modal', handleOpenModal);
-    };
-  }, []);
+  // Candidate Profile State from global CandidateProfileContext
+  const {
+    candidateProfile: userProfile,
+    saveCandidateProfile,
+    isProfileModalOpen,
+    setIsProfileModalOpen
+  } = useCandidateProfile();
 
   // Load Job details and evaluate eligibility
   useEffect(() => {
@@ -100,17 +57,23 @@ export default function JobDetailPage() {
     const loadJobDetails = async () => {
       setLoading(true);
       try {
-        const allJobs = await fetchJobs();
-        const found = (allJobs || []).find((j) => j.id === id) || 
-                      MOCK_JOBS.find((j) => j.id === id) || 
-                      MOCK_JOBS[0];
+        let found = null;
+        if (id) {
+          found = await fetchJobById(id);
+        }
+        if (!found) {
+          const allJobs = await fetchJobs();
+          found = (allJobs || []).find((j) => (j.id === id || j._id === id)) || 
+                  MOCK_JOBS.find((j) => (j.id === id || j._id === id)) || 
+                  MOCK_JOBS[0];
+        }
 
-        if (isMounted) {
+        if (isMounted && found) {
           setJob(found);
           // Evaluate eligibility against current candidate profile
           const eligibility = await checkEligibility(
             userProfile?.email || 'user-1',
-            found.id,
+            found.id || found._id,
             userProfile
           );
           setEligibilityData(eligibility);
@@ -118,7 +81,7 @@ export default function JobDetailPage() {
       } catch (err) {
         console.error('Error loading job details:', err);
         if (isMounted) {
-          const fallbackJob = MOCK_JOBS.find((j) => j.id === id) || MOCK_JOBS[0];
+          const fallbackJob = MOCK_JOBS.find((j) => (j.id === id || j._id === id)) || MOCK_JOBS[0];
           setJob(fallbackJob);
         }
       } finally {
@@ -134,9 +97,7 @@ export default function JobDetailPage() {
 
   // Save profile and re-run eligibility check
   const handleSaveProfile = async (newProfile) => {
-    setUserProfile(newProfile);
-    localStorage.setItem('internkatta_candidate_profile', JSON.stringify(newProfile));
-    window.dispatchEvent(new CustomEvent('internkatta_profile_updated', { detail: newProfile }));
+    saveCandidateProfile(newProfile);
     toast.success('Candidate profile updated!');
 
     if (job) {
@@ -152,9 +113,26 @@ export default function JobDetailPage() {
   // Submit Application (State B)
   const handleApply = async () => {
     if (!job) return;
+
+    // Enforce all 6 mandatory profile fields before applying
+    const hasProfilePic = Boolean(userProfile?.profilePicture);
+    const hasResume = Boolean(userProfile?.resumeName);
+    const hasName = Boolean(userProfile?.name && userProfile.name.trim());
+    const hasEmail = Boolean(userProfile?.email && userProfile.email.trim());
+    const hasEdu = Boolean(userProfile?.education && userProfile.education.trim());
+    const hasSkills = Boolean(userProfile?.skills && userProfile.skills.length > 0);
+
+    if (!hasProfilePic || !hasResume || !hasName || !hasEmail || !hasEdu || !hasSkills) {
+      toast.error('Please complete all 6 mandatory profile fields before submitting your application!');
+      setIsProfileModalOpen(true);
+      return;
+    }
+
     setIsApplying(true);
     try {
-      const result = await applyToJob(userProfile?.email || 'user-1', job.id, userProfile);
+      const result = await applyToJob(userProfile?.email || 'user-1', jobId, userProfile);
+      markJobAsApplied(jobId);
+      setIsApplied(true);
       setApplicationResult(result);
       setIsSuccessModalOpen(true);
       toast.success(`Successfully applied to ${job.title}!`);
@@ -165,8 +143,65 @@ export default function JobDetailPage() {
     }
   };
 
+  const jobId = job?.id || job?._id || id;
+  const [isSaved, setIsSaved] = useState(false);
+  const [isApplied, setIsApplied] = useState(false);
+
+  useEffect(() => {
+    if (!jobId) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('internkatta_saved_jobs') || '[]');
+      setIsSaved(saved.includes(jobId));
+      setIsApplied(isJobApplied(jobId));
+    } catch {}
+
+    const handleSync = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('internkatta_saved_jobs') || '[]');
+        setIsSaved(saved.includes(jobId));
+        setIsApplied(isJobApplied(jobId));
+      } catch {}
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('internkatta_saved_jobs_updated', handleSync);
+    window.addEventListener('internkatta_applied_jobs_updated', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('internkatta_saved_jobs_updated', handleSync);
+      window.removeEventListener('internkatta_applied_jobs_updated', handleSync);
+    };
+  }, [jobId]);
+
+  const handleToggleSave = () => {
+    if (!jobId) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('internkatta_saved_jobs') || '[]');
+      let updated;
+      if (saved.includes(jobId)) {
+        updated = saved.filter((i) => i !== jobId);
+        setIsSaved(false);
+        toast.success(`Removed ${job?.title || job?.jobTitle || 'job'} from saved list`);
+      } else {
+        updated = [...saved, jobId];
+        setIsSaved(true);
+        toast.success(`Saved ${job?.title || job?.jobTitle || 'job'}!`);
+      }
+      localStorage.setItem('internkatta_saved_jobs', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('internkatta_saved_jobs_updated', { detail: updated }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const isEligible = eligibilityData?.is_eligible;
-  const recos = eligibilityData?.recommended_internships || [];
+  const rawRecos = eligibilityData?.recommended_internships || [];
+  const recos = useMemo(() => {
+    if (!job) return [];
+    const smartRecos = getRecommendedInternships(job, userProfile, 2);
+    if (smartRecos && smartRecos.length > 0) return smartRecos;
+    return rawRecos;
+  }, [job, userProfile, rawRecos]);
+
   const matchScore = eligibilityData?.match_score ?? (isEligible ? 100 : 35);
   const matchedSkills = eligibilityData?.matched_skills || [];
   const missingSkills = eligibilityData?.missing_skills || [];
@@ -202,11 +237,17 @@ export default function JobDetailPage() {
     );
   }
 
+  const displayTitle = job.title || job.jobTitle || 'Job Opening';
+  const displayCompany = job.company || job.companyName || 'Company';
+  const displayDomain = job.domain || 'Software & Web Development';
+  const displaySalary = job.salary || job.package || 'Not Disclosed';
+  const displayDesc = job.description || job.jobDescription || '';
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-orange-50/20 text-gray-900 pb-24">
       <SEO
-        title={`${job.title} at ${job.company} | InternKatta AI Jobs`}
-        description={`Apply for ${job.title} at ${job.company}. Dynamic qualification gating and curated InternKatta skill recommendations.`}
+        title={`${displayTitle} at ${displayCompany} | InternKatta AI Jobs`}
+        description={`Apply for ${displayTitle} at ${displayCompany}. Dynamic qualification gating and curated InternKatta skill recommendations.`}
       />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
@@ -217,24 +258,30 @@ export default function JobDetailPage() {
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
-                  {job.domain}
+                  {displayDomain}
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700">
                   {job.type || 'Full-time'}
                 </span>
+                {isApplied && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Applied
+                  </span>
+                )}
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tight mb-2">
-                {job.title}
+                {displayTitle}
               </h1>
 
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm text-gray-600">
                 <span className="flex items-center gap-1.5 font-bold text-gray-800">
-                  <Building2 className="w-4 h-4 text-orange-500" /> {job.company}
+                  <Building2 className="w-4 h-4 text-orange-500" /> {displayCompany}
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-gray-400" /> {job.location}
+                  <MapPin className="w-4 h-4 text-gray-400" /> {job.location || 'Remote'}
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1.5">
@@ -247,12 +294,27 @@ export default function JobDetailPage() {
             <div className="flex sm:flex-row lg:flex-col gap-3 w-full lg:w-auto shrink-0">
               <div className="flex-1 lg:flex-none p-3.5 bg-gray-50 rounded-2xl border border-gray-200/80 min-w-[170px]">
                 <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">Package / CTC</span>
-                <span className="text-sm sm:text-base font-black text-emerald-700">{job.salary}</span>
+                <span className="text-sm sm:text-base font-black text-emerald-700">{displaySalary}</span>
               </div>
               <div className="flex-1 lg:flex-none p-3.5 bg-gray-50 rounded-2xl border border-gray-200/80 min-w-[170px]">
                 <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">Experience Required</span>
-                <span className="text-sm sm:text-base font-bold text-gray-800">{job.experience}</span>
+                <span className="text-sm sm:text-base font-bold text-gray-800">{job.experience || 'Fresher / 0-1 yr'}</span>
               </div>
+
+              {/* Discrete Outlined Save Button Neatly Aligned Below Experience Required */}
+              <button
+                type="button"
+                onClick={handleToggleSave}
+                title={isSaved ? "Remove from saved jobs" : "Save this job"}
+                className={`w-full py-2.5 px-3.5 rounded-2xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  isSaved
+                    ? 'bg-orange-50 border-orange-300 text-orange-600 shadow-2xs'
+                    : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-700 hover:text-gray-900 shadow-2xs'
+                }`}
+              >
+                <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-orange-600 text-orange-600' : 'text-gray-500'}`} />
+                <span>{isSaved ? 'Saved Job' : 'Save Job'}</span>
+              </button>
             </div>
           </div>
 
@@ -302,7 +364,7 @@ export default function JobDetailPage() {
                 Job Overview & Role Summary
               </h3>
               <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                {job.description}
+                {displayDesc}
               </p>
             </div>
 
@@ -399,54 +461,31 @@ export default function JobDetailPage() {
                   return (
                     <div
                       key={i}
-                      className={`p-4 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
-                        isCompleted
-                          ? 'bg-emerald-50/60 border-emerald-300 shadow-2xs'
-                          : 'bg-white border-red-200 shadow-2xs hover:border-orange-400 hover:shadow-md'
-                      }`}
+                      className="flex flex-row items-center justify-between w-full p-3 bg-orange-50 border border-orange-200 rounded-lg"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${
-                          isCompleted ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-600'
-                        }`}>
-                          {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : <BookOpen className="w-4 h-4" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <h5 className="text-xs font-bold text-gray-900 truncate">{c.title}</h5>
-                            {isCompleted && (
-                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-[10px] font-bold shrink-0">
-                                Verified ✓
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">
-                            {c.description || 'Industrial mentorship, real projects and ISO certification'}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-600 font-medium">
-                            <span className="text-amber-600 font-bold">{c.rating || '4.9 ★'}</span>
-                            <span>•</span>
-                            <span>{c.duration || '2 Months'}</span>
-                          </div>
-                        </div>
+                      <div className="flex flex-col gap-1 min-w-0 pr-2">
+                        <span className="text-xs font-bold text-orange-700 uppercase flex items-center gap-1">
+                          <Sparkles size={14} className="text-orange-600 shrink-0" />
+                          BRIDGE SKILL GAP
+                        </span>
+                        <span className="text-sm font-bold text-slate-900 whitespace-normal break-words" title={c.title}>
+                          {c.title}
+                        </span>
                       </div>
 
-                      {/* Action: Completed Status Badge OR Enroll Link */}
                       {isCompleted ? (
-                        <div className="w-full py-2 px-3 bg-emerald-100/90 text-emerald-900 border border-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                          <span>Completed & Verified ✓</span>
-                        </div>
+                        <span className="px-3 py-1.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md text-xs font-bold flex items-center gap-1 shrink-0">
+                          <CheckCircle2 size={15} className="text-emerald-700" />
+                          Verified ✓
+                        </span>
                       ) : (
-                        <a
-                          href={c.url || '/internship'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="reco-item w-full py-2 px-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                        <button
+                          type="button"
+                          onClick={() => window.open(c.url || `/internship?search=${encodeURIComponent(c.title || '')}`, '_blank', 'noopener,noreferrer')}
+                          className="bg-[#f04e0e] hover:bg-[#d6450c] text-white px-4 py-1.5 rounded-md text-sm font-semibold flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
                         >
-                          <span>Enroll & Qualify</span>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
+                          Enroll <ArrowUpRight size={16} />
+                        </button>
                       )}
                     </div>
                   );
@@ -455,7 +494,17 @@ export default function JobDetailPage() {
 
               {/* Action / Gating Submission Section */}
               <div className="pt-2">
-                {isEligible ? (
+                {isApplied ? (
+                  <div className="space-y-2">
+                    <div className="w-full py-3.5 px-4 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25">
+                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      <span>Application Submitted & Tracked in Applied Jobs ✓</span>
+                    </div>
+                    <p className="text-center text-[11px] text-gray-500">
+                      You have already applied for this role. Your verified application is active and tracked under your <strong>Applied Jobs</strong> tab.
+                    </p>
+                  </div>
+                ) : isEligible ? (
                   <div className="space-y-2">
                     <button
                       onClick={handleApply}
@@ -470,7 +519,7 @@ export default function JobDetailPage() {
                       </span>
                     </button>
                     <p className="text-center text-[11px] text-gray-500">
-                      Your verified resume and credentials will be forwarded directly to the hiring managers at <strong>{job.company}</strong>.
+                      Your verified resume and credentials will be forwarded directly to the hiring managers at <strong>{displayCompany}</strong>.
                     </p>
                   </div>
                 ) : (

@@ -181,7 +181,7 @@ export const extractResumeData = (rawText) => {
     name: '',
     email: '',
     education: '',
-    domain: 'Software Development',
+    domain: 'Software & Web Development',
     skills: []
   };
 
@@ -283,38 +283,74 @@ export const extractResumeData = (rawText) => {
   // 5. INFER TARGET DOMAIN
   const skillsStr = result.skills.join(' ').toLowerCase();
   if (
-    skillsStr.includes('machine learning') ||
-    skillsStr.includes('data science') ||
-    skillsStr.includes('pandas') ||
-    skillsStr.includes('scikit-learn') ||
-    skillsStr.includes('powerbi')
+    skillsStr.includes('cyber') ||
+    skillsStr.includes('security') ||
+    skillsStr.includes('penetration') ||
+    skillsStr.includes('soc')
   ) {
-    result.domain = 'Data Science';
+    result.domain = 'Cyber Security';
+  } else if (
+    skillsStr.includes('rpa') ||
+    skillsStr.includes('uipath') ||
+    skillsStr.includes('power automate') ||
+    skillsStr.includes('automation anywhere')
+  ) {
+    result.domain = 'Robotic Process Automation (RPA)';
+  } else if (
+    skillsStr.includes('sap') ||
+    skillsStr.includes('erp') ||
+    skillsStr.includes('salesforce')
+  ) {
+    result.domain = 'Enterprise Systems (ERP)';
+  } else if (
+    skillsStr.includes('android') ||
+    skillsStr.includes('ios') ||
+    skillsStr.includes('flutter') ||
+    skillsStr.includes('react native') ||
+    skillsStr.includes('swift') ||
+    skillsStr.includes('kotlin')
+  ) {
+    result.domain = 'Mobile App Development';
   } else if (
     skillsStr.includes('deep learning') ||
     skillsStr.includes('pytorch') ||
     skillsStr.includes('tensorflow') ||
     skillsStr.includes('nlp') ||
-    skillsStr.includes('llms')
+    skillsStr.includes('llm') ||
+    skillsStr.includes('llms') ||
+    skillsStr.includes('machine learning') ||
+    skillsStr.includes('artificial intelligence')
   ) {
     result.domain = 'AI & Machine Learning';
+  } else if (
+    skillsStr.includes('data science') ||
+    skillsStr.includes('pandas') ||
+    skillsStr.includes('scikit-learn') ||
+    skillsStr.includes('powerbi') ||
+    skillsStr.includes('tableau') ||
+    skillsStr.includes('data analytics')
+  ) {
+    result.domain = 'Data Science & Analytics';
   } else if (
     skillsStr.includes('seo') ||
     skillsStr.includes('google ads') ||
     skillsStr.includes('content marketing') ||
-    skillsStr.includes('social media marketing')
+    skillsStr.includes('social media') ||
+    skillsStr.includes('marketing') ||
+    skillsStr.includes('business development')
   ) {
-    result.domain = 'Digital Marketing';
+    result.domain = 'Marketing & Business';
   } else if (
     skillsStr.includes('docker') ||
     skillsStr.includes('kubernetes') ||
     skillsStr.includes('aws') ||
     skillsStr.includes('ci/cd') ||
-    skillsStr.includes('devops')
+    skillsStr.includes('devops') ||
+    skillsStr.includes('cloud')
   ) {
     result.domain = 'Cloud & DevOps';
   } else {
-    result.domain = 'Software Development';
+    result.domain = 'Software & Web Development';
   }
 
   return result;

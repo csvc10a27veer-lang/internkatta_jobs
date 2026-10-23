@@ -53,9 +53,28 @@ const jobSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  domain: {
+    type: String,
+    default: 'Software & Web Development',
+    enum: [
+      'Software & Web Development',
+      'Data Science & Analytics',
+      'AI & Machine Learning',
+      'Cloud & DevOps',
+      'Mobile App Development',
+      'Robotic Process Automation (RPA)',
+      'Enterprise Systems (ERP)',
+      'Cyber Security',
+      'Marketing & Business'
+    ],
+    index: true
+  },
   sourceUrl: {
     type: String,
-    trim: true
+    trim: true,
+    unique: true,
+    sparse: true,
+    index: true
   },
   status: {
     type: String,
@@ -74,7 +93,29 @@ const jobSchema = new mongoose.Schema({
     type: Date
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
+
+// Virtual getters and setters for seamless compatibility across Admin and Candidate frontends
+jobSchema.virtual('title')
+  .get(function() { return this.jobTitle; })
+  .set(function(v) { this.jobTitle = v; });
+
+jobSchema.virtual('company')
+  .get(function() { return this.companyName; })
+  .set(function(v) { this.companyName = v; });
+
+jobSchema.virtual('package')
+  .get(function() { return this.salary; })
+  .set(function(v) { this.salary = v; });
+
+jobSchema.virtual('description')
+  .get(function() { return this.jobDescription; })
+  .set(function(v) { this.jobDescription = v; });
+
+jobSchema.set('toJSON', { virtuals: true });
+jobSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('Job', jobSchema);

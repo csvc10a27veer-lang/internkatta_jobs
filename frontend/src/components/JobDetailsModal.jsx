@@ -1,8 +1,11 @@
 // src/components/JobDetailsModal.jsx (Core Gating Logic)
-import React from 'react';
-import { X, Building2, MapPin, IndianRupee, Clock, CheckCircle2, AlertTriangle, Lock, ExternalLink, Sparkles, BookOpen, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Building2, MapPin, IndianRupee, Clock, CheckCircle2, AlertTriangle, Lock, ExternalLink, Sparkles, BookOpen, ShieldCheck, Bookmark, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isSkillMatch } from '../utils/skillMatcher';
+import { isJobApplied, markJobAsApplied } from '../utils/appliedJobsService';
+import { getRecommendedInternships } from '../utils/internshipRecommendations';
+import toast from 'react-hot-toast';
 
 export default function JobDetailsModal({
   job,
@@ -14,24 +17,101 @@ export default function JobDetailsModal({
 }) {
   if (!job) return null;
 
+  const jobId = job.id || job._id;
+
+  const [isSaved, setIsSaved] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('internkatta_saved_jobs') || '[]');
+      return saved.includes(jobId);
+    } catch {
+      return false;
+    }
+  });
+
+  const [isApplied, setIsApplied] = useState(() => isJobApplied(jobId));
+
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('internkatta_saved_jobs') || '[]');
+        setIsSaved(saved.includes(jobId));
+      } catch {}
+      setIsApplied(isJobApplied(jobId));
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('internkatta_saved_jobs_updated', handleSync);
+    window.addEventListener('internkatta_applied_jobs_updated', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('internkatta_saved_jobs_updated', handleSync);
+      window.removeEventListener('internkatta_applied_jobs_updated', handleSync);
+    };
+  }, [jobId]);
+
+  const handleToggleSave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const saved = JSON.parse(localStorage.getItem('internkatta_saved_jobs') || '[]');
+      let updated;
+      if (saved.includes(jobId)) {
+        updated = saved.filter((id) => id !== jobId);
+        setIsSaved(false);
+        toast.success(`Removed ${job.title || job.jobTitle || 'job'} from saved list`);
+      } else {
+        updated = [...saved, jobId];
+        setIsSaved(true);
+        toast.success(`Saved ${job.title || job.jobTitle || 'job'}!`);
+      }
+      localStorage.setItem('internkatta_saved_jobs', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('internkatta_saved_jobs_updated', { detail: updated }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const isEligible = eligibility?.is_eligible;
-  const recos = eligibility?.recommended_internships || [];
+  const engineRecos = useMemo(() => getRecommendedInternships(job, userProfile, 2), [job, userProfile]);
+  const recos = (engineRecos && engineRecos.length > 0) ? engineRecos : (eligibility?.recommended_internships || []);
   const matchScore = eligibility?.match_score ?? (isEligible ? 100 : 35);
   const missingSkills = eligibility?.missing_skills || [];
   const matchedSkills = eligibility?.matched_skills || [];
+
+  const handleApplyClick = () => {
+    markJobAsApplied(jobId);
+    setIsApplied(true);
+    onApplySuccess?.();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
       <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-gray-150 overflow-hidden my-8 modal-card">
         
-        {/* Header with Close */}
+        {/* Header with Close & Upper Save Button */}
         <div className="p-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white relative">
-          <button
-            onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="absolute top-5 right-5 flex items-center gap-2">
+            {/* Discrete Outlined Save Button in Upper Section */}
+            <button
+              type="button"
+              onClick={handleToggleSave}
+              title={isSaved ? "Remove from saved jobs" : "Save this job"}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer backdrop-blur-md ${
+                isSaved
+                  ? 'bg-orange-500/20 border-orange-400 text-orange-200'
+                  : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+              }`}
+            >
+              <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-orange-400 text-orange-400' : 'text-white'}`} />
+              <span>{isSaved ? 'Saved Job' : 'Save Job'}</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-500 text-white">
@@ -158,34 +238,25 @@ export default function JobDetailsModal({
                 {recos.map((c, i) => (
                   <div
                     key={i}
-                    className="p-3.5 bg-white rounded-xl border border-red-200 shadow-xs hover:border-orange-400 hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                    className="flex flex-row items-center justify-between w-full p-3 bg-orange-50 border border-orange-200 rounded-lg"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-orange-100 text-orange-600 rounded-lg shrink-0 mt-0.5">
-                        <BookOpen className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h5 className="text-xs font-bold text-gray-900">{c.title}</h5>
-                        <p className="text-[11px] text-gray-500 line-clamp-1">{c.description || 'Industrial internship with live project and ISO certificate'}</p>
-                        <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-600 font-medium">
-                          <span className="text-amber-600 font-bold">{c.rating || '4.9 ★'}</span>
-                          <span>•</span>
-                          <span>{c.duration || '2 Months'}</span>
-                          <span>•</span>
-                          <span className="text-emerald-600 font-semibold">{c.learners || 'Industry Recognized'}</span>
-                        </div>
-                      </div>
+                    <div className="flex flex-col gap-1 min-w-0 pr-2">
+                      <span className="text-xs font-bold text-orange-700 uppercase flex items-center gap-1">
+                        <Sparkles size={14} className="text-orange-600 shrink-0" />
+                        BRIDGE SKILL GAP
+                      </span>
+                      <span className="text-sm font-bold text-slate-900 whitespace-normal break-words" title={c.title}>
+                        {c.title}
+                      </span>
                     </div>
 
-                    <a
-                      href={c.url || '/internship'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="reco-item shrink-0 px-3.5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+                    <button
+                      type="button"
+                      onClick={() => window.open(c.url || `/internship?search=${encodeURIComponent(c.title || '')}`, '_blank', 'noopener,noreferrer')}
+                      className="bg-[#f04e0e] hover:bg-[#d6450c] text-white px-4 py-1.5 rounded-md text-sm font-semibold flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
                     >
-                      <span>Enroll & Qualify</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                      Enroll <ArrowUpRight size={16} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -220,13 +291,20 @@ export default function JobDetailsModal({
                 </div>
               </div>
 
-              <button
-                onClick={onApplySuccess}
-                className="btn-active-green flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 text-base"
-              >
-                <Sparkles className="w-5 h-5 text-white" />
-                <span>APPLY NOW (Internship Completed & Verified)</span>
-              </button>
+              {isApplied ? (
+                <div className="w-full py-3 px-4 bg-emerald-100 text-emerald-900 rounded-xl text-sm font-bold flex items-center justify-center gap-2 border border-emerald-300">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-700" />
+                  <span>Application Submitted & Verified ✓</span>
+                </div>
+              ) : (
+                <button
+                  onClick={handleApplyClick}
+                  className="btn-active-green flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 text-base cursor-pointer"
+                >
+                  <Sparkles className="w-5 h-5 text-white" />
+                  <span>APPLY NOW (Internship Completed & Verified)</span>
+                </button>
+              )}
             </div>
           )}
 

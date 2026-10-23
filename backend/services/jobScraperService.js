@@ -392,9 +392,65 @@ const jobPools = {
 };
 
 /**
+ * Automatic domain classification based on job title, skills, and description.
+ * @param {Object} job
+ * @returns {string} One of the 9 standardized domain strings
+ */
+function detectDomain(job) {
+  if (!job) return 'Software & Web Development';
+  const title = (job.jobTitle || job.title || '').toLowerCase();
+  const skills = Array.isArray(job.skills) ? job.skills.join(' ').toLowerCase() : '';
+  const desc = (job.jobDescription || job.description || '').toLowerCase();
+  const text = `${title} ${skills} ${desc}`;
+
+  // 1. Cyber Security
+  if (/\b(cyber|security|soc|penetration|infosec|network\s*security|vulnerability|ethical\s*hack|firewall)\b/i.test(text)) {
+    return 'Cyber Security';
+  }
+
+  // 2. RPA (Robotic Process Automation)
+  if (/\b(rpa|uipath|power\s*automate|blue\s*prism|automation\s*anywhere)\b/i.test(text)) {
+    return 'Robotic Process Automation (RPA)';
+  }
+
+  // 3. Enterprise Systems (ERP)
+  if (/\b(sap|erp|oracle\s*erp|salesforce|crm|peoplesoft|dynamics\s*365|abap)\b/i.test(text)) {
+    return 'Enterprise Systems (ERP)';
+  }
+
+  // 4. Mobile App Development
+  if (/\b(android|ios|flutter|react\s*native|swift|swiftui|kotlin|mobile\s*app|xamarin)\b/i.test(text)) {
+    return 'Mobile App Development';
+  }
+
+  // 5. AI & Machine Learning
+  if (/\b(deep\s*learning|pytorch|tensorflow|nlp|llm|llms|generative\s*ai|computer\s*vision|langchain|hugging\s*face|neural|transformers?|artificial\s*intelligence)\b/i.test(text)) {
+    return 'AI & Machine Learning';
+  }
+
+  // 6. Data Science & Analytics
+  if (/\b(data\s*science|data\s*analytics|machine\s*learning|data\s*analyst|data\s*engineer|pandas|scikit|powerbi|power\s*bi|tableau|bigquery|snowflake|analytics|bi\s*developer)\b/i.test(text)) {
+    return 'Data Science & Analytics';
+  }
+
+  // 7. Cloud & DevOps
+  if (/\b(devops|aws|azure|kubernetes|cloud|terraform|docker|ci\/cd|infrastructure|sre|ansible|helm|gcp)\b/i.test(text)) {
+    return 'Cloud & DevOps';
+  }
+
+  // 8. Marketing & Business
+  if (/\b(marketing|seo|growth|digital\s*marketing|sem|google\s*ads|content\s*marketing|social\s*media|business\s*development|sales\s*executive)\b/i.test(text)) {
+    return 'Marketing & Business';
+  }
+
+  // 9. Default: Software & Web Development
+  return 'Software & Web Development';
+}
+
+/**
  * Scrapes/fetches recent jobs from the requested platform or all platforms.
  * @param {string} platform - 'linkedin' | 'naukri' | 'glassdoor' | 'internshala' | 'indeed' | 'all'
- * @returns {Array} Array of job objects with unique timestamps
+ * @returns {Array} Array of job objects with deterministic sourceUrl and assigned domain
  */
 function scrapeRecentJobs(platform = 'all') {
   const normalized = (platform || 'all').toLowerCase();
@@ -414,19 +470,21 @@ function scrapeRecentJobs(platform = 'all') {
     pool = [...jobPools.indeed];
   }
 
-  // Stamp each job with fresh dates and ensure contact is manual only (empty)
+  // Stamp each job with fresh dates, detected domain, and deterministic sourceUrl for deduplication
   const now = new Date();
   return pool.map((job, idx) => ({
     ...job,
+    domain: detectDomain(job),
     contact: '', // manual entry only, never auto-fill
     registrationDate: new Date(now.getTime() - idx * 3600000).toISOString().split('T')[0],
     endDate: new Date(now.getTime() + 30 * 24 * 3600000).toISOString().split('T')[0],
     postedDate: new Date(now.getTime() - idx * 3600000).toISOString().split('T')[0],
-    sourceUrl: `${job.sourceUrl}-${Date.now().toString().slice(-4)}`
+    sourceUrl: job.sourceUrl // Deterministic URL to ensure unique index & upsert deduplication
   }));
 }
 
 module.exports = {
   scrapeRecentJobs,
+  detectDomain,
   jobPools
 };

@@ -757,12 +757,6 @@ const InternshipPage = () => {
                         {/* Center Content: Title, Subtitle, Search */}
                         <div className="relative z-10 text-center max-w-2xl mx-auto flex flex-col items-center w-full">
                             
-                            {/* Badge: InternKatta Career Accelerators */}
-                            <div className="inline-flex items-center gap-2 px-3 py-0.5 sm:py-1 rounded-full bg-[#1e3a8a]/60 backdrop-blur-md border border-blue-400/40 text-[11px] sm:text-xs font-medium text-blue-200 shadow-sm mb-2 sm:mb-2.5">
-                                <img src="/logo2-transparent.png" className="w-3.5 h-3.5 object-contain" alt="" onError={(e) => { e.target.style.display = 'none'; }} />
-                                <span>InternKatta Career Accelerators</span>
-                            </div>
-
                             {/* Main Heading */}
                             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-black tracking-tight text-white mb-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] leading-tight">
                                 Internship{' '}

@@ -715,12 +715,6 @@ languageParamMatch && durationParamMatch;
                         {/* Center Overlapping Content */}
                         <div className="relative z-10 text-center max-w-3xl mx-auto flex flex-col items-center w-full">
                             
-                            {/* Badge */}
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1e3a8a]/70 backdrop-blur-md border border-blue-400/40 text-xs font-medium text-blue-200 shadow-md mb-2 sm:mb-2.5">
-                                <AcademicCapIcon className="w-3.5 h-3.5 text-blue-300" />
-                                <span>Industry-Recognized Certifications</span>
-                            </div>
-
                             {/* Main Heading */}
                             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-black tracking-tight text-white mb-2 drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] leading-tight flex items-center justify-center gap-2">
                                 <span>Courses</span>

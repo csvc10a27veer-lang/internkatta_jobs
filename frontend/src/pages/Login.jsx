@@ -8,7 +8,7 @@ import { useUserAuth } from '../context/UserAuthContext';
 import api from '../utils/api';
 import { setupGoogleSignInButton } from '../utils/googleAuth';
 import SEO from '../components/SEO';
-import { Mail, Lock, ArrowRight, Briefcase, BookOpen, TrendingUp } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Briefcase, BookOpen, TrendingUp, Sparkles } from 'lucide-react';
 
 function Login() {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -21,6 +21,7 @@ function Login() {
     const [otp, setOtp] = useState('');
     const [resendCooldown, setResendCooldown] = useState(0);
     const [isResending, setIsResending] = useState(false);
+    const [isDevLoggingIn, setIsDevLoggingIn] = useState(false);
     
     // Get the 'auth' object from the user context
     const { auth, login } = useUserAuth(); 
@@ -30,14 +31,14 @@ function Login() {
 
     // This effect checks if the user is ALREADY logged in.
     useEffect(() => {
-        if (auth && auth.token && auth.user?.role === 'user') {
+        if (auth && auth.token && auth.user?.role === 'user' && !isDevLoggingIn) {
             if (redirectTo) {
                 navigate(redirectTo, { replace: true });
             } else {
                 navigate('/user/mycourse');
             }
         }
-    }, [auth, navigate, redirectTo]);
+    }, [auth, navigate, redirectTo, isDevLoggingIn]);
 
     // Resend cooldown timer
     useEffect(() => {
@@ -117,6 +118,55 @@ function Login() {
             });
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    // Dev-Only 1-Click Login Handler
+    const handleDevLogin = async () => {
+        setIsDevLoggingIn(true);
+        try {
+            const { data } = await api.post('/api/users/dev-login');
+            if (data?.token) {
+                // 1. Authenticate user in global auth context & localStorage
+                login(data);
+
+                // 2. Seed / sync candidate profile in localStorage for full Jobs portal testing
+                const existingProfile = localStorage.getItem('internkatta_candidate_profile');
+                let parsedProfile = {};
+                try {
+                    parsedProfile = existingProfile ? JSON.parse(existingProfile) : {};
+                } catch {}
+
+                const devProfile = {
+                    ...parsedProfile,
+                    name: data.fullName || 'Test Candidate',
+                    email: data.email || 'testcandidate@internkatta.local',
+                    education: parsedProfile.education || 'B.Tech in Computer Science',
+                    college: parsedProfile.college || 'Pune Institute of Computer Technology',
+                    gradYear: parsedProfile.gradYear || '2025',
+                    domain: parsedProfile.domain || 'Software Development',
+                    skills: parsedProfile.skills?.length > 0
+                        ? parsedProfile.skills
+                        : ['React.js', 'Node.js', 'JavaScript', 'MongoDB', 'Express.js', 'Docker', 'Git'],
+                    profilePicture: data.profilePicture || parsedProfile.profilePicture || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+                    resumeName: parsedProfile.resumeName || 'Test_Candidate_Resume.pdf',
+                    resumeSize: parsedProfile.resumeSize || '142 KB',
+                    profileCompletion: 100,
+                    completedInternships: ['MERN STACK']
+                };
+                localStorage.setItem('internkatta_candidate_profile', JSON.stringify(devProfile));
+                window.dispatchEvent(new CustomEvent('internkatta_profile_updated', { detail: devProfile }));
+
+                toast.success('Logged in as Test Candidate! Redirecting to Jobs...');
+                navigate('/jobs', { replace: true });
+            } else {
+                toast.error('Dev login failed: No token returned');
+            }
+        } catch (err) {
+            console.error('Dev login error:', err);
+            toast.error(err.response?.data?.message || 'Dev login failed');
+        } finally {
+            setIsDevLoggingIn(false);
         }
     };
 
@@ -482,6 +532,21 @@ function Login() {
                                     </div>
                                 )}
                             </form>
+
+                            {/* Dev-Only 1-Click Test Login Button */}
+                            {import.meta.env.DEV && (
+                                <div className="mt-4 pt-3 border-t border-dashed border-slate-200">
+                                    <button
+                                        type="button"
+                                        onClick={handleDevLogin}
+                                        disabled={isDevLoggingIn}
+                                        className="w-full py-2.5 px-4 rounded-xl border border-slate-300 hover:border-slate-400 bg-slate-50/80 hover:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-[0.99] disabled:opacity-60"
+                                    >
+                                        <Sparkles className="w-4 h-4 text-amber-500" />
+                                        <span>{isDevLoggingIn ? 'Logging in as Test Candidate...' : '1-Click Test Login (Dev Mode)'}</span>
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Or Divider */}
                             <div className="my-5 sm:my-6 flex items-center">
